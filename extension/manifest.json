@@ -1,0 +1,38 @@
+{
+  "manifest_version": 2,
+  "name": "Panacea",
+  "description": "The chrome extension to tweak it just how I like it.",
+  "version": "0.1",
+  "permissions": [
+    "downloads",
+    "downloads.shelf",
+    "history",
+    "power",
+    "sessions",
+    "storage",
+    "tabs"
+  ],
+  "background": {
+    "persistent": false,
+    "scripts": ["js/background.js"]
+  },
+  "offline_enabled": true,
+  "browser_action": {
+    "default_title": "Download List",
+    "default_popup": "popup.html",
+    "default_icon": "img/icon/logo-512.png"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "chrome_style": true,
+    "open_in_tab": false
+  },
+  "icons": {
+    "16": "img/icon/logo-16.png",
+    "32": "img/icon/logo-32.png",
+    "64": "img/icon/logo-64.png",
+    "128": "img/icon/logo-128.png",
+    "256": "img/icon/logo-256.png",
+    "512": "img/icon/logo-512.png"
+  }
+}

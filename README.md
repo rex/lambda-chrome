@@ -3,4 +3,6 @@
   panacea-chrome
 </h1>
 
-The extension **by** *me*, **for** *me*, to tweak Chrome *juuuuuuust* the way I like it.
+<p align="center">
+The extension <strong>by</strong> <em>me</em>, <strong>for</strong> <em>me</em>, to tweak Chrome <em>juuuuuuust</em> the way I like it.
+</p>

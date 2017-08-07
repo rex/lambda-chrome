@@ -4,6 +4,7 @@
   "description": "The chrome extension to tweak it just how I like it.",
   "version": "0.1",
   "permissions": [
+    "contextMenus",
     "downloads",
     "downloads.shelf",
     "history",
@@ -14,7 +15,10 @@
   ],
   "background": {
     "persistent": false,
-    "scripts": ["js/background.js"]
+    "scripts": [
+      "js/event.js",
+      "js/install.js"
+    ]
   },
   "offline_enabled": true,
   "browser_action": {

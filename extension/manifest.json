@@ -4,6 +4,7 @@
   "description": "The chrome extension to tweak it just how I like it.",
   "version": "0.1",
   "permissions": [
+    "activeTab",
     "contextMenus",
     "downloads",
     "downloads.shelf",
@@ -30,6 +31,15 @@
     "page": "options.html",
     "chrome_style": true,
     "open_in_tab": false
+  },
+  "commands": {
+    "save-loaded-image": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+E",
+        "mac": "Command+Shift+E"
+      },
+      "description": "Easily save the image currently loaded in the browser (if you are at a URL like http://site.com/images/foobar.jpg)"
+    }
   },
   "icons": {
     "16": "img/icon/logo-16.png",

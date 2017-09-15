@@ -1,7 +1,7 @@
 const imgDownloadMenuId = 'panacea-cm-dl-img'
 
 // A generic onclick callback function.
-function downloadResource(info, tab) {
+function downloadResource(info, tab, callback = () => {}) {
   var url = info['srcUrl'].replace(/\?.+$/gi, (match) => {
     // console.log("Match/1/2/3", match)
     return ''
@@ -29,7 +29,32 @@ function downloadResource(info, tab) {
 
   // return false
 
-  chrome.downloads.download({ url: url, filename: filename, saveAs: false })
+  chrome.downloads.download({ url, filename, saveAs: false }, callback)
 }
 
 chrome.contextMenus.onClicked.addListener(downloadResource)
+
+chrome.commands.getAll((commands) => {
+  // console.log('All registered commands', commands)
+})
+
+chrome.commands.onCommand.addListener((cmd) => {
+  // console.log(`Command heard: ${cmd}`, cmd)
+  switch (cmd) {
+    case 'save-loaded-image':
+      // console.log('SAVE LOADED IMAGE', cmd)
+      chrome.tabs.getSelected((tab) => {
+        // console.log(`URL OF TAB: ${tab.url}`, tab)
+        downloadResource({ srcUrl: tab.url }, tab, () => {
+          // console.log('Download complete!')
+          chrome.tabs.remove(tab.id, () => {
+            // console.log('Tab closed!', tab)
+          })
+        })
+      })
+      break;
+    default:
+      console.error(`Invalid command? wtf? ${cmd}`)
+      break;
+  }
+})

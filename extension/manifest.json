@@ -1,5 +1,5 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "Panacea",
   "description": "The chrome extension to tweak it just how I like it.",
   "version": "0.1",
@@ -15,14 +15,10 @@
     "tabs"
   ],
   "background": {
-    "persistent": false,
-    "scripts": [
-      "js/event.js",
-      "js/install.js"
-    ]
+    "service_worker": "js/background.js"
   },
   "offline_enabled": true,
-  "browser_action": {
+  "action": {
     "default_title": "Download List",
     "default_popup": "popup.html",
     "default_icon": "img/icon/logo-512.png"

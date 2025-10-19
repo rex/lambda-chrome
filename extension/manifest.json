@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Panacea",
-  "description": "The chrome extension to tweak it just how I like it.",
+  "name": "Lambda",
+  "description": "Lambda - personal Chrome tweaks and utilities.",
   "version": "0.1",
   "permissions": [
     "activeTab",
@@ -30,9 +30,9 @@
   },
   "offline_enabled": true,
   "action": {
-    "default_title": "Download List",
+    "default_title": "Lambda",
     "default_popup": "popup.html",
-    "default_icon": "img/icon/logo-512.png"
+  "default_icon": "img/icon/lambda-512.png"
   },
   "options_ui": {
     "page": "options.html",
@@ -48,11 +48,11 @@
     }
   },
   "icons": {
-    "16": "img/icon/logo-16.png",
-    "32": "img/icon/logo-32.png",
-    "64": "img/icon/logo-64.png",
-    "128": "img/icon/logo-128.png",
-    "256": "img/icon/logo-256.png",
-    "512": "img/icon/logo-512.png"
+  "16": "img/icon/lambda-16.png",
+  "32": "img/icon/lambda-32.png",
+  "64": "img/icon/lambda-64.png",
+  "128": "img/icon/lambda-128.png",
+  "256": "img/icon/lambda-256.png",
+  "512": "img/icon/lambda-512.png"
   }
 }

@@ -1,7 +1,7 @@
-// Panacea MV3 background service worker (refactored)
+// Lambda MV3 background service worker (refactored)
 // Consolidates install/startup behavior and download helpers.
 
-const IMG_DOWNLOAD_MENU_ID = 'panacea-cm-dl-img'
+const IMG_DOWNLOAD_MENU_ID = 'lambda-cm-dl-img'
 
 const logLastError = (ctx = '') => {
   if (chrome.runtime.lastError) {
@@ -32,7 +32,7 @@ function createContextMenu() {
     }, () => logLastError('createContextMenu'))
     // context menu for applying bypass on current page
     try {
-      chrome.contextMenus.create({ id: 'panacea-apply-bypass', title: 'Enable Panacea bypass on this page', contexts: ['all'] }, () => logLastError('createContextMenu-bypass'))
+      chrome.contextMenus.create({ id: 'lambda-apply-bypass', title: 'Enable Lambda bypass on this page', contexts: ['all'] }, () => logLastError('createContextMenu-bypass'))
     } catch (e) {}
   } catch (err) {
     console.warn('createContextMenu exception', err)
@@ -100,7 +100,7 @@ async function downloadResource(info, tab, callback = () => {}) {
       filename = sanitizeFilename(filename)
     }
 
-    console.debug('panacea: download', { url, filename })
+  console.debug('lambda: download', { url, filename })
 
     chrome.downloads.download({ url, filename, saveAs: false }, (downloadId) => {
       logLastError('downloads.download')
@@ -164,7 +164,7 @@ chrome.runtime.onStartup.addListener(postStartup)
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === IMG_DOWNLOAD_MENU_ID) downloadResource(info, tab)
-  if (info.menuItemId === 'panacea-apply-bypass') {
+  if (info.menuItemId === 'lambda-apply-bypass') {
     // instruct content script in the page to apply bypass features
     try {
       chrome.tabs.sendMessage(tab.id, { type: 'applyBypassNow', revealPasswords: true, allowPaste: true, enableRightClick: true }, (resp) => {})
@@ -202,7 +202,7 @@ chrome.downloads.onChanged.addListener((d) => {
       if (!it) return
       chrome.notifications.create(String(d.id), {
         type: 'basic',
-        iconUrl: 'img/icon/logo-128.png',
+        iconUrl: 'img/icon/lambda-128.png',
         title: 'Download complete',
         message: it.filename || 'Download finished'
       })
@@ -210,7 +210,7 @@ chrome.downloads.onChanged.addListener((d) => {
   } else if (d.state.current === 'interrupted') {
     chrome.notifications.create(String(d.id), {
       type: 'basic',
-      iconUrl: 'img/icon/logo-128.png',
+      iconUrl: 'img/icon/lambda-128.png',
       title: 'Download interrupted',
       message: 'A download failed or was interrupted.'
     })

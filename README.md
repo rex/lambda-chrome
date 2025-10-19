@@ -1,6 +1,6 @@
 <h1 align="center">
-  <img src="https://github.com/rex/panacea-chrome/blob/master/extension/img/icon/logo-128.png"><br />
-  panacea-chrome
+  <img src="https://github.com/rex/lambda-chrome/blob/master/extension/img/cyberpunk-glitch-lambda-logo.png"><br />
+  lambda-chrome
 </h1>
 
 <p align="center">

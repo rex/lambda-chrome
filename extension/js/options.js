@@ -1,4 +1,4 @@
-// Options page logic for Panacea extension
+// Options page logic for Lambda extension
 
 const DEFAULTS = {
   disableShelf: true,

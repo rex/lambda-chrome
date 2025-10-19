@@ -1,4 +1,4 @@
-// Content script (isolated world) for Panacea: bypass site protections
+// Content script (isolated world) for Lambda: bypass site protections
 // Runs at document_start in all frames
 
 (function () {

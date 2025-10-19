@@ -13,13 +13,20 @@
   "scripts": {
     "test": "mocha \"extension/test-unit/**/*.spec.js\" --exit",
     "coverage": "nyc npm test",
+    "test:all": "npm run coverage",
+    "clean:coverage": "rimraf coverage .nyc_output || rm -rf coverage .nyc_output",
     "test:e2e": "node extension/tests/puppeteer_test.js",
     "test:e2e:headless": "cross-env HEADLESS=1 node extension/tests/puppeteer_test.js",
     "test:e2e:fast": "cross-env USE_SYSTEM_CHROME=1 node extension/tests/puppeteer_test.js"
-  }
-  ,
+  },
   "nyc": {
-    "reporter": ["text","html"],
-    "exclude": ["extension/tests/**","extension/test-unit/**"]
+    "reporter": [
+      "text",
+      "html"
+    ],
+    "exclude": [
+      "extension/tests/**",
+      "extension/test-unit/**"
+    ]
   }
 }

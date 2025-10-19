@@ -52,6 +52,7 @@ Add new fixtures in `fixtures/` and new test files in this directory. Keep tests
 Unit tests for utility functions
 
 normalizeTwitterUrl
+
 - File: `normalize_twitter.test.js`
 - Purpose: unit-test the `normalizeTwitterUrl` helper in `extension/js/background.js` which normalizes pbs.twimg.com image URLs to request the large variant and create a sensible filename.
 - To add a new test case: edit `normalize_twitter.test.js` and add entries to the `cases` array; each entry has:
@@ -65,6 +66,7 @@ Note: The unit test extracts the function text from `background.js` at runtime, 
 New libs and test helpers
 
 - `extension/js/lib/` now contains small, pure helper modules:
+
   - `sanitizeFilename.js`
   - `srcset.js` (parseSrcset, chooseBestSrcsetEntry)
   - `urlutils.js` (basenameFromUrl, urlFromBackgroundImage)
@@ -77,4 +79,3 @@ Adding tests
 
 - Put mocha tests under `extension/test-unit/*.spec.js` (examples already included).
 - Run all unit tests with `npm test`.
-

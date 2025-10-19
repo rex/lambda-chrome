@@ -3,9 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
-    "puppeteer": "^25.0.0"
+    "puppeteer": "^23.0.0",
+    "cross-env": "^7.0.3",
+    "mocha": "^10.2.0",
+    "chai": "^4.3.7",
+    "nyc": "^15.1.0",
+    "jsdom-global": "^3.0.2"
   },
   "scripts": {
-    "test:e2e": "node extension/tests/puppeteer_test.js"
+    "test": "mocha \"extension/test-unit/**/*.spec.js\" --exit",
+    "coverage": "nyc npm test",
+    "test:e2e": "node extension/tests/puppeteer_test.js",
+    "test:e2e:headless": "cross-env HEADLESS=1 node extension/tests/puppeteer_test.js",
+    "test:e2e:fast": "cross-env USE_SYSTEM_CHROME=1 node extension/tests/puppeteer_test.js"
+  }
+  ,
+  "nyc": {
+    "reporter": ["text","html"],
+    "exclude": ["extension/tests/**","extension/test-unit/**"]
   }
 }

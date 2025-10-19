@@ -12,6 +12,8 @@ DEFAULTS.forcedExtension = ''
 
 function qs(id) { return document.getElementById(id) }
 
+const optsAdapter = (typeof chromeAdapter !== 'undefined' && chromeAdapter) ? chromeAdapter : (typeof chrome !== 'undefined' ? { storage: chrome.storage, runtime: chrome.runtime } : null)
+
 async function saveOptions() {
   const disableShelf = qs('opt-disable-shelf').checked
   const filenameTemplate = qs('opt-filename-template').value || DEFAULTS.filenameTemplate
@@ -24,19 +26,22 @@ async function saveOptions() {
   // Prefer sync storage so settings can sync between browsers; fallback to local
   await new Promise((resolve) => {
     try {
-  chrome.storage.sync.set({ disableShelf, filenameTemplate, revealPasswords, allowPaste, enableRightClickByDefault, preferOriginalFilename, forcedExtension }, () => {
-        if (chrome.runtime.lastError) {
+      const st = optsAdapter && optsAdapter.storage ? optsAdapter.storage : chrome.storage
+      st.sync.set({ disableShelf, filenameTemplate, revealPasswords, allowPaste, enableRightClickByDefault, preferOriginalFilename, forcedExtension }, () => {
+        if (chrome.runtime && chrome.runtime.lastError) {
           // fallback
-          chrome.storage.local.set({ disableShelf, filenameTemplate, revealPasswords, allowPaste, enableRightClickByDefault, preferOriginalFilename, forcedExtension }, () => resolve())
+          st.local.set({ disableShelf, filenameTemplate, revealPasswords, allowPaste, enableRightClickByDefault, preferOriginalFilename, forcedExtension }, () => resolve())
         } else resolve()
       })
     } catch (e) {
-      chrome.storage.local.set({ disableShelf, filenameTemplate, revealPasswords, allowPaste, enableRightClickByDefault }, () => resolve())
+      const st = optsAdapter && optsAdapter.storage ? optsAdapter.storage : chrome.storage
+      st.local.set({ disableShelf, filenameTemplate, revealPasswords, allowPaste, enableRightClickByDefault }, () => resolve())
     }
   })
 
   // tell background to apply shelf setting immediately
-  chrome.runtime.sendMessage({ type: 'applyDisableShelf', value: disableShelf })
+  const rt = optsAdapter && optsAdapter.runtime ? optsAdapter.runtime : chrome.runtime
+  rt && rt.sendMessage && rt.sendMessage({ type: 'applyDisableShelf', value: disableShelf })
 
   const status = qs('status')
   status.textContent = 'Saved'
@@ -78,7 +83,25 @@ function attach() {
   qs('save-btn').addEventListener('click', saveOptions)
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    attach()
+    loadOptions()
+  })
+} else {
+  // module required after DOM ready (tests may do this)
   attach()
   loadOptions()
-})
+}
+
+// Export for tests
+if (typeof window !== 'undefined') {
+  window.saveOptions = saveOptions
+  window.loadOptions = loadOptions
+  window.renderOptions = renderOptions
+}
+if (typeof global !== 'undefined') {
+  global.saveOptions = saveOptions
+  global.loadOptions = loadOptions
+  global.renderOptions = renderOptions
+}

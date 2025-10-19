@@ -1,2 +1,31 @@
 .sass-cache/
 *.css.map
+
+# Node modules
+node_modules/
+
+# Puppeteer / test artifacts
+extension/tests/tmp-downloads/
+extension/tests/tmp-profile/
+
+# Editor / OS
+.vscode/
+.DS_Store
+Thumbs.db
+.env
+/.idea/
+
+# Test and build artifacts
+coverage/
+nyc_output/
+.nyc_output/
+extension/tests/tmp-downloads/
+extension/tests/tmp-profile/
+
+# Logs
+*.log
+.pids
+*.pid
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

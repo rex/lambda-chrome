@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Lambda Extension Test Page</title>
+</head>
+
+<body>
+  <h1>Lambda test page</h1>
+  <!--
+  fixtures/test-page.html
+
+  Purpose: simple deterministic fixture for the Puppeteer e2e harness.
+  - contains a direct <img> (via placeholder.com) and a dynamically created blob image
+  - the content script should be able to find a visible image and ask the background to download it
+  - the test harness posts window.postMessage({ __lambda_msg: { type: 'probeAndDownloadVisible' } }) to trigger this behavior
+-->
+  <p>Visible image (direct src):</p>
+  <img id="direct" src="https://via.placeholder.com/300x200.png?text=Direct+Image" width="300" height="200" />
+
+  <p>Blob image (created via JS):</p>
+  <canvas id="cv" width="200" height="150" style="display:none"></canvas>
+  <img id="blobimg" alt="blob image" />
+
+  <script>
+    // create a blob image dynamically
+    (async function () {
+      const cv = document.getElementById('cv')
+      const ctx = cv.getContext('2d')
+      ctx.fillStyle = '#0a74da'
+      ctx.fillRect(0, 0, cv.width, cv.height)
+      ctx.fillStyle = '#fff'
+      ctx.font = '20px sans-serif'
+      ctx.fillText('Blob', 20, 80)
+      const dataUrl = cv.toDataURL('image/png')
+      // create blob from dataURL
+      const res = await fetch(dataUrl)
+      const blob = await res.blob()
+      const blobUrl = URL.createObjectURL(blob)
+      document.getElementById('blobimg').src = blobUrl
+    })()
+  </script>
+</body>
+
+</html>

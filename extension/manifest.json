@@ -20,7 +20,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-  "js": ["js/content/bypass-cs.js", "js/content/image-probe.js"],
+      "js": ["js/content/bypass-cs.js", "js/content/image-probe.js"],
       "run_at": "document_start",
       "all_frames": true
     }
@@ -32,7 +32,7 @@
   "action": {
     "default_title": "Lambda",
     "default_popup": "popup.html",
-  "default_icon": "img/icon/lambda-512.png"
+    "default_icon": "img/icon/lambda-512.png"
   },
   "options_ui": {
     "page": "options.html",
@@ -48,11 +48,11 @@
     }
   },
   "icons": {
-  "16": "img/icon/lambda-16.png",
-  "32": "img/icon/lambda-32.png",
-  "64": "img/icon/lambda-64.png",
-  "128": "img/icon/lambda-128.png",
-  "256": "img/icon/lambda-256.png",
-  "512": "img/icon/lambda-512.png"
+    "16": "img/icon/lambda-16.png",
+    "32": "img/icon/lambda-32.png",
+    "64": "img/icon/lambda-64.png",
+    "128": "img/icon/lambda-128.png",
+    "256": "img/icon/lambda-256.png",
+    "512": "img/icon/lambda-512.png"
   }
 }

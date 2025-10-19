@@ -3,6 +3,36 @@
 
 const IMG_DOWNLOAD_MENU_ID = 'lambda-cm-dl-img'
 
+// Adapter: if a `chromeAdapter` is injected (tests/refactors), use it; otherwise delegate to `chrome`.
+const adapter = (typeof chromeAdapter !== 'undefined' && chromeAdapter) ? chromeAdapter : (function(){
+  try {
+    return {
+      storage: chrome.storage,
+      downloads: {
+        download: (...args) => chrome.downloads.download(...args),
+        setShelfEnabled: (v, cb) => chrome.downloads.setShelfEnabled(v, cb),
+        onChanged: chrome.downloads.onChanged
+      },
+      contextMenus: chrome.contextMenus,
+      tabs: chrome.tabs,
+      notifications: chrome.notifications,
+      runtime: chrome.runtime,
+      commands: chrome.commands
+    }
+  } catch (e) {
+    // running in non-extension env (tests) — provide minimal stubs to avoid crashing
+    return {
+      storage: { get: (k,cb)=>cb({}), set: (o,cb)=>cb && cb() },
+      downloads: { download: ()=>{}, setShelfEnabled: (v,cb)=>cb && cb(), onChanged: { addListener: ()=>{} } },
+      contextMenus: { create: ()=>{} },
+      tabs: { sendMessage: ()=>{}, query: ()=>{}, move: ()=>{}, remove: ()=>{} },
+      notifications: { create: ()=>{} },
+      runtime: { onInstalled: { addListener: ()=>{} }, onStartup: { addListener: ()=>{} }, onMessage: { addListener: ()=>{} } },
+      commands: { onCommand: { addListener: ()=>{} } }
+    }
+  }
+})()
+
 const logLastError = (ctx = '') => {
   if (chrome.runtime.lastError) {
     console.warn(ctx, chrome.runtime.lastError && chrome.runtime.lastError.message)
@@ -42,7 +72,7 @@ function createContextMenu() {
 async function postInstall(details) {
   // read stored preference for disableShelf (sync preferred)
   try {
-    chrome.storage.sync.get(['disableShelf'], async (items) => {
+    adapter.storage.sync.get(['disableShelf'], async (items) => {
       const disable = items.disableShelf !== undefined ? !!items.disableShelf : true
       // if disable is true => setShelfEnabled(false). So enabled = !disable
       await setShelfEnabled(!disable)
@@ -56,7 +86,7 @@ async function postInstall(details) {
 
 async function postStartup() {
   try {
-    chrome.storage.sync.get(['disableShelf'], async (items) => {
+    adapter.storage.sync.get(['disableShelf'], async (items) => {
       const disable = items.disableShelf !== undefined ? !!items.disableShelf : true
       await setShelfEnabled(!disable)
     })
@@ -77,70 +107,66 @@ function sanitizeFilename(name) {
 }
 
 function normalizeTwitterUrl(url, filename) {
-  if (url && url.startsWith('https://pbs.twimg.com/media')) {
-    if (filename.endsWith('.jpg:large')) filename = filename.replace('.jpg:large', '.jpg')
-    else if (filename.endsWith('.jpg-large')) filename = filename.replace('.jpg-large', '.jpg')
-    if (!url.endsWith(':large')) url = `${url}:large`
+  try {
+    if (!url) return { url, filename }
+    const u = new URL(url)
+    if (!u.hostname.includes('pbs.twimg.com') || !u.pathname.startsWith('/media/')) return { url, filename }
+
+    // Extract media id from pathname and strip any Twemoji-style suffix like :large
+    let seg = u.pathname.split('/').pop() || ''
+    seg = seg.replace(/:.*$/, '')
+    // seg may be like "G3hKysjWYAA15Xl" or "G3hKysjWYAA15Xl.jpg"
+    let id = seg
+    let extFromPath = ''
+    const m = seg.match(/^(.+?)\.([a-z0-9]+)$/i)
+    if (m) { id = m[1]; extFromPath = m[2].toLowerCase() }
+
+    // Prefer explicit format query param if present
+    const qFormat = u.searchParams.get('format')
+    let format = (qFormat || extFromPath || 'jpg').toLowerCase()
+
+    // Normalize format: prefer 'jpeg' for JPEG files to match typical save-as behaviour
+    if (format === 'jpg') format = 'jpeg'
+
+    // Rebuild URL to request the large variant using query params (works for query-style URLs)
+    // Clear search and force format/name
+    u.search = ''
+    u.searchParams.set('format', qFormat || extFromPath || 'jpg')
+    u.searchParams.set('name', 'large')
+    const newUrl = u.toString()
+
+    // Construct filename as <media-id>.<ext>
+    const outFilename = `${id}.${format}`
+    return { url: newUrl, filename: outFilename }
+  } catch (e) {
+    return { url, filename }
   }
-  return { url, filename }
 }
 
-async function downloadResource(info, tab, callback = () => {}) {
-  try {
-    let src = info && info.srcUrl ? String(info.srcUrl) : ''
-    if (!src) return
+// Given an initial src and tab, probe content script and network to determine final url/filename
+const { getBestCandidate: libGetBest } = require('./lib/getBestCandidate')
 
-    // Ask content script for a better candidate and filename
-    const probe = await new Promise((resolve) => {
-      try {
-        chrome.tabs.sendMessage(tab.id, { type: 'probeImage', src }, (resp) => {
-          if (chrome.runtime.lastError) return resolve(null)
-          resolve(resp)
-        })
-      } catch (e) { resolve(null) }
-    })
-
-    let url = src
-    let filename = ''
-    if (probe && probe.ok) {
-      url = probe.url || src
-      filename = probe.filename || ''
-    }
-
-    // fallback: derive filename from url
-    if (!filename) filename = url.substring(url.lastIndexOf('/') + 1) || 'image'
-
-    ;({ url, filename } = normalizeTwitterUrl(url, filename))
-
-    // Ensure extension exists; infer from content-type via HEAD if missing
-    if (!/\.[a-z0-9]{1,6}(?:$|[?#])/i.test(filename)) {
-      try {
-        const head = await fetch(url, { method: 'HEAD', mode: 'cors' })
-        const ct = head.headers.get('content-type') || ''
-        if (ct) {
-          const ext = ct.split('/')[1] || 'bin'
-          filename = `${filename}.${ext}`
-        }
-      } catch(e) { /* ignore */ }
-    }
-
-    // Apply templating (async) before sanitizing
+async function getBestCandidate(info, tab) {
+  const fetchFn = (u, opts) => fetch(u, opts)
+  const applyTemplateFn = (url, filename) => new Promise((resolve) => {
     try {
-      const templated = await applyTemplate(url, filename)
-      filename = sanitizeFilename(templated)
-    } catch (e) {
-      filename = sanitizeFilename(filename)
-    }
+      adapter.storage.sync.get(['filenameTemplate'], (items) => {
+        let tpl = items && items.filenameTemplate ? items.filenameTemplate : '{domain}/{basename}'
+        if (!tpl) tpl = '{domain}/{basename}'
+        try {
+          const out = tpl.replace(/\{domain\}/g, new URL(url).hostname.replace(/^www\./, '')).replace(/\{basename\}/g, filename).replace(/\{timestamp\}/g, String(Date.now()))
+          resolve(out)
+        } catch (e) { resolve(filename) }
+      })
+    } catch (e) { resolve(filename) }
+  })
+  return libGetBest(info, tab, { adapter, fetchFn, applyTemplateFn })
+}
 
-    console.debug('lambda: download', { url, filename })
-
-    chrome.downloads.download({ url, filename, saveAs: false }, (downloadId) => {
-      logLastError('downloads.download')
-      if (typeof callback === 'function') callback(downloadId)
-    })
-  } catch (err) {
-    console.error('downloadResource error', err)
-  }
+const { performDownload: libPerformDownload } = require('./lib/performDownload')
+function performDownload(candidate, callback = ()=>{}) {
+  console.debug('lambda: performDownload', candidate)
+  libPerformDownload(adapter, candidate, callback)
 }
 
 // Apply filename templating if configured
@@ -168,38 +194,47 @@ function applyTemplate(url, filename) {
 }
 
 // Place new tabs next to the currently active tab
-chrome.tabs.onCreated.addListener(async (tab) => {
+adapter.tabs.onCreated && adapter.tabs.onCreated.addListener ? adapter.tabs.onCreated.addListener(async (tab) => {
   try {
     // Only act on normal tabs (ignore those without windowId)
     if (!tab || typeof tab.windowId === 'undefined') return
     // find active tab in the same window
-    chrome.tabs.query({ active: true, windowId: tab.windowId }, (tabs) => {
+    adapter.tabs.query({ active: true, windowId: tab.windowId }, (tabs) => {
       const active = tabs && tabs[0]
       if (!active || active.index === undefined) return
-      // move the newly created tab to active.index + 1
       try {
-        chrome.tabs.move(tab.id, { index: active.index + 1 }, () => {
+        adapter.tabs.move(tab.id, { index: active.index + 1 }, () => {
           logLastError('tabs.move')
         })
-      } catch (e) {
-        // ignore
-      }
+      } catch (e) {}
     })
   } catch (e) {
     // ignore
   }
-})
+}) : (chrome.tabs.onCreated && chrome.tabs.onCreated.addListener(async (tab) => {
+  // fallback to chrome.tabs.onCreated if adapter doesn't expose it
+  try {
+    if (!tab || typeof tab.windowId === 'undefined') return
+    chrome.tabs.query({ active: true, windowId: tab.windowId }, (tabs) => {
+      const active = tabs && tabs[0]
+      if (!active || active.index === undefined) return
+      try { chrome.tabs.move(tab.id, { index: active.index + 1 }, () => logLastError('tabs.move')) } catch (e) {}
+    })
+  } catch (e) {}
+}))
 
 // Register event listeners at top-level so MV3 service worker can wake on events
 chrome.runtime.onInstalled.addListener(postInstall)
 chrome.runtime.onStartup.addListener(postStartup)
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === IMG_DOWNLOAD_MENU_ID) downloadResource(info, tab)
+  if (info.menuItemId === IMG_DOWNLOAD_MENU_ID) {
+    getBestCandidate(info, tab).then((cand) => performDownload(cand))
+  }
   if (info.menuItemId === 'lambda-apply-bypass') {
     // instruct content script in the page to apply bypass features
     try {
-      chrome.tabs.sendMessage(tab.id, { type: 'applyBypassNow', revealPasswords: true, allowPaste: true, enableRightClick: true }, (resp) => {})
+      adapter.tabs.sendMessage(tab.id, { type: 'applyBypassNow', revealPasswords: true, allowPaste: true, enableRightClick: true }, (resp) => {})
     } catch (e) {}
   }
 })
@@ -209,8 +244,8 @@ chrome.commands.onCommand.addListener((cmd) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tab = tabs && tabs[0]
       if (!tab) return
-      downloadResource({ srcUrl: tab.url }, tab, () => {
-        if (tab.id) chrome.tabs.remove(tab.id)
+      getBestCandidate({ srcUrl: tab.url }, tab).then((cand) => {
+        performDownload(cand, () => { if (tab.id) adapter.tabs.remove(tab.id) })
       })
     })
     return
@@ -219,20 +254,25 @@ chrome.commands.onCommand.addListener((cmd) => {
 })
 
 // Light-weight download state logging (optional improvement)
-chrome.downloads.onChanged.addListener((delta) => {
+(adapter.downloads && adapter.downloads.onChanged && adapter.downloads.onChanged.addListener ? adapter.downloads.onChanged.addListener : chrome.downloads.onChanged.addListener)((delta) => {
   if (delta && delta.state && delta.state.current) {
     console.debug('download state', delta.id, delta.state.current)
   }
 })
 
 // Notify on download completion/failure
-chrome.downloads.onChanged.addListener((d) => {
+(adapter.downloads && adapter.downloads.onChanged && adapter.downloads.onChanged.addListener ? adapter.downloads.onChanged.addListener : chrome.downloads.onChanged.addListener)((d) => {
   if (!d || !d.state) return
   if (d.state.current === 'complete') {
     chrome.downloads.search({ id: d.id }, (items) => {
       const it = items && items[0]
       if (!it) return
-      chrome.notifications.create(String(d.id), {
+      adapter.notifications.create ? adapter.notifications.create(String(d.id), {
+        type: 'basic',
+        iconUrl: 'img/icon/lambda-128.png',
+        title: 'Download complete',
+        message: it.filename || 'Download finished'
+      }) : chrome.notifications.create(String(d.id), {
         type: 'basic',
         iconUrl: 'img/icon/lambda-128.png',
         title: 'Download complete',
@@ -240,17 +280,26 @@ chrome.downloads.onChanged.addListener((d) => {
       })
     })
   } else if (d.state.current === 'interrupted') {
-    chrome.notifications.create(String(d.id), {
-      type: 'basic',
-      iconUrl: 'img/icon/lambda-128.png',
-      title: 'Download interrupted',
-      message: 'A download failed or was interrupted.'
-    })
+    if (adapter.notifications.create) {
+      adapter.notifications.create(String(d.id), {
+        type: 'basic',
+        iconUrl: 'img/icon/lambda-128.png',
+        title: 'Download interrupted',
+        message: 'A download failed or was interrupted.'
+      })
+    } else {
+      chrome.notifications.create(String(d.id), {
+        type: 'basic',
+        iconUrl: 'img/icon/lambda-128.png',
+        title: 'Download interrupted',
+        message: 'A download failed or was interrupted.'
+      })
+    }
   }
 })
 
 // Listen for option changes from options page
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+(adapter.runtime && adapter.runtime.onMessage && adapter.runtime.onMessage.addListener ? adapter.runtime.onMessage.addListener : chrome.runtime.onMessage.addListener)((msg, sender, sendResponse) => {
   if (msg && msg.type === 'applyDisableShelf') {
     const disable = !!msg.value
     // persist preference to sync storage (best effort)
@@ -274,9 +323,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       const forcedExt = items && items.forcedExtension ? items.forcedExtension : ''
       // build info and call downloadResource
       const info = { srcUrl: src }
-      // callback to respond after download started
-      downloadResource(info, sender.tab, (did) => {
-        sendResponse({ ok: true, id: did })
+      getBestCandidate(info, sender.tab).then((cand) => {
+        performDownload(cand, (did) => sendResponse({ ok: true, id: did }))
       })
     })
     return true

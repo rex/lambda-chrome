@@ -23,7 +23,7 @@
 
 <body>
   <div class="popup">
-  <h3>Lambda tools</h3>
+    <h3>Lambda tools</h3>
     <div class="row">
       <span>Enable bypass on this page</span>
       <button id="btn-bypass" class="btn">Run</button>
@@ -57,7 +57,7 @@
         const tab = tabs && tabs[0]
         if (!tab) return
         // ask content script for a visible image under cursor or fallback to document images
-        chrome.tabs.sendMessage(tab.id, { type: 'probeAndDownloadVisible' }, (resp) => {})
+        chrome.tabs.sendMessage(tab.id, { type: 'probeAndDownloadVisible' }, (resp) => { })
       })
     })
   </script>

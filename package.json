@@ -1,0 +1,11 @@
+{
+  "name": "lambda-chrome",
+  "version": "0.1.0",
+  "private": true,
+  "devDependencies": {
+    "puppeteer": "^25.0.0"
+  },
+  "scripts": {
+    "test:e2e": "node extension/tests/puppeteer_test.js"
+  }
+}

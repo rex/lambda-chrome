@@ -7,6 +7,8 @@ const DEFAULTS = {
 DEFAULTS.revealPasswords = false
 DEFAULTS.allowPaste = true
 DEFAULTS.enableRightClickByDefault = false
+DEFAULTS.preferOriginalFilename = true
+DEFAULTS.forcedExtension = ''
 
 function qs(id) { return document.getElementById(id) }
 
@@ -16,14 +18,16 @@ async function saveOptions() {
   const revealPasswords = qs('opt-reveal-passwords').checked
   const allowPaste = qs('opt-allow-paste').checked
   const enableRightClickByDefault = qs('opt-enable-rightclick').checked
+  const preferOriginalFilename = qs('opt-prefer-original-filename').checked
+  const forcedExtension = qs('opt-forced-extension').value || ''
 
   // Prefer sync storage so settings can sync between browsers; fallback to local
   await new Promise((resolve) => {
     try {
-      chrome.storage.sync.set({ disableShelf, filenameTemplate, revealPasswords, allowPaste, enableRightClickByDefault }, () => {
+  chrome.storage.sync.set({ disableShelf, filenameTemplate, revealPasswords, allowPaste, enableRightClickByDefault, preferOriginalFilename, forcedExtension }, () => {
         if (chrome.runtime.lastError) {
           // fallback
-          chrome.storage.local.set({ disableShelf, filenameTemplate, revealPasswords, allowPaste, enableRightClickByDefault }, () => resolve())
+          chrome.storage.local.set({ disableShelf, filenameTemplate, revealPasswords, allowPaste, enableRightClickByDefault, preferOriginalFilename, forcedExtension }, () => resolve())
         } else resolve()
       })
     } catch (e) {
@@ -45,6 +49,8 @@ function renderOptions(cfg = {}) {
   qs('opt-reveal-passwords').checked = cfg.revealPasswords
   qs('opt-allow-paste').checked = cfg.allowPaste
   qs('opt-enable-rightclick').checked = cfg.enableRightClickByDefault
+  qs('opt-prefer-original-filename').checked = cfg.preferOriginalFilename
+  qs('opt-forced-extension').value = cfg.forcedExtension || ''
 }
 
 function loadOptions() {

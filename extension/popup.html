@@ -32,6 +32,10 @@
       <span>Reveal passwords now</span>
       <button id="btn-reveal" class="btn">Reveal</button>
     </div>
+    <div class="row">
+      <span>Download image from page (probe)</span>
+      <button id="btn-download" class="btn">Download</button>
+    </div>
   </div>
   <script>
     document.getElementById('btn-bypass').addEventListener('click', () => {
@@ -46,6 +50,14 @@
         const tab = tabs && tabs[0]
         if (!tab) return
         chrome.tabs.sendMessage(tab.id, { type: 'applyBypassNow', revealPasswords: true })
+      })
+    })
+    document.getElementById('btn-download').addEventListener('click', () => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tab = tabs && tabs[0]
+        if (!tab) return
+        // ask content script for a visible image under cursor or fallback to document images
+        chrome.tabs.sendMessage(tab.id, { type: 'probeAndDownloadVisible' }, (resp) => {})
       })
     })
   </script>

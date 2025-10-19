@@ -59,6 +59,18 @@
       <p class="help">You can also enable bypass on the current page from the popup or context menu.</p>
     </section>
 
+    <section class="card">
+      <h2>Image download defaults</h2>
+      <div class="field">
+        <label class="label">Prefer original filename if available</label>
+        <label class="switch"><input type="checkbox" id="opt-prefer-original-filename"><span class="slider"></span></label>
+      </div>
+      <div class="field">
+        <label class="label">Force extension (e.g. .jpg/.png/.webp) - leave blank to auto</label>
+        <input id="opt-forced-extension" class="input" placeholder=".jpg" />
+      </div>
+    </section>
+
     <section class="card actions">
       <button id="save-btn" class="btn">Save</button>
       <span id="status" class="status" aria-live="polite"></span>
@@ -69,3 +81,4 @@
 </body>
 
 </html>
+

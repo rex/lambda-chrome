@@ -20,7 +20,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["js/content/bypass-cs.js"],
+  "js": ["js/content/bypass-cs.js", "js/content/image-probe.js"],
       "run_at": "document_start",
       "all_frames": true
     }

@@ -87,10 +87,42 @@ function normalizeTwitterUrl(url, filename) {
 
 async function downloadResource(info, tab, callback = () => {}) {
   try {
-    let url = info && info.srcUrl ? String(info.srcUrl).replace(/\?.+$/gi, '') : ''
-    let filename = url ? url.substring(url.lastIndexOf('/') + 1) : 'download'
+    let src = info && info.srcUrl ? String(info.srcUrl) : ''
+    if (!src) return
+
+    // Ask content script for a better candidate and filename
+    const probe = await new Promise((resolve) => {
+      try {
+        chrome.tabs.sendMessage(tab.id, { type: 'probeImage', src }, (resp) => {
+          if (chrome.runtime.lastError) return resolve(null)
+          resolve(resp)
+        })
+      } catch (e) { resolve(null) }
+    })
+
+    let url = src
+    let filename = ''
+    if (probe && probe.ok) {
+      url = probe.url || src
+      filename = probe.filename || ''
+    }
+
+    // fallback: derive filename from url
+    if (!filename) filename = url.substring(url.lastIndexOf('/') + 1) || 'image'
 
     ;({ url, filename } = normalizeTwitterUrl(url, filename))
+
+    // Ensure extension exists; infer from content-type via HEAD if missing
+    if (!/\.[a-z0-9]{1,6}(?:$|[?#])/i.test(filename)) {
+      try {
+        const head = await fetch(url, { method: 'HEAD', mode: 'cors' })
+        const ct = head.headers.get('content-type') || ''
+        if (ct) {
+          const ext = ct.split('/')[1] || 'bin'
+          filename = `${filename}.${ext}`
+        }
+      } catch(e) { /* ignore */ }
+    }
 
     // Apply templating (async) before sanitizing
     try {
@@ -100,7 +132,7 @@ async function downloadResource(info, tab, callback = () => {}) {
       filename = sanitizeFilename(filename)
     }
 
-  console.debug('lambda: download', { url, filename })
+    console.debug('lambda: download', { url, filename })
 
     chrome.downloads.download({ url, filename, saveAs: false }, (downloadId) => {
       logLastError('downloads.download')
@@ -233,5 +265,20 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       })
     }
     sendResponse({ ok: true })
+  }
+  if (msg && msg.type === 'downloadFromPage') {
+    const src = msg.src
+    // gather user prefs
+    chrome.storage.sync.get(['preferOriginalFilename','forcedExtension'], (items) => {
+      const preferOriginal = items && items.preferOriginalFilename !== undefined ? !!items.preferOriginalFilename : true
+      const forcedExt = items && items.forcedExtension ? items.forcedExtension : ''
+      // build info and call downloadResource
+      const info = { srcUrl: src }
+      // callback to respond after download started
+      downloadResource(info, sender.tab, (did) => {
+        sendResponse({ ok: true, id: did })
+      })
+    })
+    return true
   }
 })

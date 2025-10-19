@@ -9,10 +9,11 @@
     "downloads",
     "downloads.shelf",
     "history",
-    "power",
-    "sessions",
-    "storage",
-    "tabs"
+  "power",
+  "sessions",
+  "storage",
+  "tabs",
+  "notifications"
   ],
   "background": {
     "service_worker": "js/background.js"

@@ -1,0 +1,61 @@
+:root{
+  --bg: #0b0f14;
+  --panel: #0f1720;
+  --muted: #9aa4b2;
+  --accent: #7ee787;
+  --card: #11161b;
+  --glass: rgba(255,255,255,0.03);
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  --font-mono: 'Source Code Pro', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+}
+
+html,body{height:100%;}
+body{
+  background: linear-gradient(180deg,var(--bg) 0%, #071018 100%);
+  color: #e6eef6;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing:antialiased;
+  padding: 24px;
+}
+
+.container{
+  max-width:900px;
+  margin:0 auto;
+}
+
+.header{
+  display:flex;
+  gap:16px;
+  align-items:center;
+  margin-bottom:18px;
+}
+.logo{width:56px;height:56px;border-radius:8px}
+
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border:1px solid rgba(255,255,255,0.03);
+  padding:16px;
+  border-radius:12px;
+  margin-bottom:12px;
+}
+
+h1{font-size:20px;margin:0}
+h2{font-size:14px;margin:0 0 8px 0;color:var(--accent)}
+
+.field{display:flex;align-items:center;gap:12px}
+.label{min-width:140px;color:var(--muted)}
+.input{background:var(--glass);border:1px solid rgba(255,255,255,0.03);color:inherit;padding:8px;border-radius:8px;width:100%}
+.help{color:var(--muted);font-size:12px;margin:6px 0}
+
+.actions{display:flex;gap:12px;align-items:center}
+.btn{background:linear-gradient(180deg,#2df59a,#18b76d);color:#04221a;padding:8px 14px;border-radius:10px;border:none;font-weight:600;cursor:pointer}
+.status{color:var(--muted);font-size:13px}
+
+.switch{position:relative;display:inline-block;width:52px;height:28px}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#111;border-radius:999px;transition:.2s}
+.slider:before{position:absolute;content:"";height:22px;width:22px;left:4px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked + .slider{background:linear-gradient(90deg,#2df59a,#18b76d)}
+.switch input:checked + .slider:before{transform:translateX(24px)}
+
+code{font-family:var(--font-mono);background:rgba(0,0,0,0.15);padding:2px 6px;border-radius:6px}

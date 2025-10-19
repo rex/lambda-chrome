@@ -1,96 +1,208 @@
-// Panacea Chrome Extension - Manifest V3 Background Script
-// Combines functionality from event.js and install.js
+// Panacea MV3 background service worker (refactored)
+// Consolidates install/startup behavior and download helpers.
 
-const imgDownloadMenuId = 'panacea-cm-dl-img'
+const IMG_DOWNLOAD_MENU_ID = 'panacea-cm-dl-img'
 
-// Helper functions from install.js
-const disableShelf = () => {
-  console.log('Disabling download shelf')
-  chrome.downloads.setShelfEnabled(false)
-};
-
-const createContextMenu = () => {
-  chrome.contextMenus.create({
-    id: 'panacea-cm-dl-img',
-    title: 'Download Image',
-    contexts: [
-      'image'
-    ]
-  }, () => {
-    console.log('DL Image installed!', chrome.runtime.lastError)
-  })
-}
-
-const postInstall = () => {
-  disableShelf()
-  createContextMenu()
-}
-
-const postStartup = () => {
-  disableShelf()
-}
-
-// Download resource function from event.js (updated for MV3)
-function downloadResource(info, tab, callback = () => {}) {
-  var url = info['srcUrl'].replace(/\?.+$/gi, (match) => {
-    // console.log("Match/1/2/3", match)
-    return ''
-  })
-
-  var filename = url.substring(url.lastIndexOf('/')+1)
-
-  if (url.startsWith('https://pbs.twimg.com/media')) {
-    // console.log("Url is a twitter image", url)
-    if (filename.endsWith('.jpg:large')) {
-      // console.log('filename ends in jpg:large', filename)
-      filename = filename.replace('.jpg:large', '.jpg');
-    } else if (filename.endsWith('.jpg-large')) {
-      // console.log('filename ends in jpg-large', filename)
-      filename = filename.replace('.jpg-large', '.jpg');
-    }
-    if (!url.endsWith(':large')) {
-      // console.log('url does not end in jpg:large', url)
-      url = `${url}:large`
-    }
+const logLastError = (ctx = '') => {
+  if (chrome.runtime.lastError) {
+    console.warn(ctx, chrome.runtime.lastError && chrome.runtime.lastError.message)
   }
-
-  console.log(`url: ${url}`)
-  console.log(`filename: ${filename}`)
-
-  // return false
-
-  chrome.downloads.download({ url, filename, saveAs: false }, callback)
 }
 
-// Event listeners
+function setShelfEnabled(enabled) {
+  return new Promise((resolve) => {
+    try {
+      chrome.downloads.setShelfEnabled(enabled, () => {
+        logLastError('setShelfEnabled')
+        resolve()
+      })
+    } catch (err) {
+      console.warn('setShelfEnabled exception', err)
+      resolve()
+    }
+  })
+}
+
+function createContextMenu() {
+  try {
+    chrome.contextMenus.create({
+      id: IMG_DOWNLOAD_MENU_ID,
+      title: 'Download Image',
+      contexts: ['image']
+    }, () => logLastError('createContextMenu'))
+  } catch (err) {
+    console.warn('createContextMenu exception', err)
+  }
+}
+
+async function postInstall(details) {
+  // read stored preference for disableShelf (sync preferred)
+  try {
+    chrome.storage.sync.get(['disableShelf'], async (items) => {
+      const disable = items.disableShelf !== undefined ? !!items.disableShelf : true
+      await setShelfEnabled(disable === true ? false : false)
+      createContextMenu()
+    })
+  } catch (e) {
+    await setShelfEnabled(false)
+    createContextMenu()
+  }
+}
+
+async function postStartup() {
+  try {
+    chrome.storage.sync.get(['disableShelf'], async (items) => {
+      const disable = items.disableShelf !== undefined ? !!items.disableShelf : true
+      await setShelfEnabled(disable === true ? false : false)
+    })
+  } catch (e) {
+    await setShelfEnabled(false)
+  }
+}
+
+function sanitizeFilename(name) {
+  if (!name) return 'download'
+  try { name = decodeURIComponent(name) } catch (e) { /* ignore */ }
+  // remove trailing modifiers and query-like segments
+  name = name.replace(/[:?#].*$/g, '')
+  // Replace characters that are invalid on most file systems
+  name = name.replace(/[\\/:"<>|?*\x00-\x1F]/g, '_')
+  // Limit length
+  return name.slice(0, 255) || 'download'
+}
+
+function normalizeTwitterUrl(url, filename) {
+  if (url && url.startsWith('https://pbs.twimg.com/media')) {
+    if (filename.endsWith('.jpg:large')) filename = filename.replace('.jpg:large', '.jpg')
+    else if (filename.endsWith('.jpg-large')) filename = filename.replace('.jpg-large', '.jpg')
+    if (!url.endsWith(':large')) url = `${url}:large`
+  }
+  return { url, filename }
+}
+
+function downloadResource(info, tab, callback = () => {}) {
+  try {
+    let url = info && info.srcUrl ? String(info.srcUrl).replace(/\?.+$/gi, '') : ''
+    let filename = url ? url.substring(url.lastIndexOf('/') + 1) : 'download'
+
+    ;({ url, filename } = normalizeTwitterUrl(url, filename))
+    filename = sanitizeFilename(filename)
+
+    console.debug('panacea: download', { url, filename })
+
+    chrome.downloads.download({ url, filename, saveAs: false }, (downloadId) => {
+      logLastError('downloads.download')
+      if (typeof callback === 'function') callback(downloadId)
+    })
+  } catch (err) {
+    console.error('downloadResource error', err)
+  }
+}
+
+// Apply filename templating if configured
+function applyTemplate(url, filename) {
+  return new Promise((resolve) => {
+    try {
+      chrome.storage.sync.get(['filenameTemplate'], (items) => {
+        let tpl = items && items.filenameTemplate ? items.filenameTemplate : '{domain}/{basename}'
+        if (!tpl) tpl = '{domain}/{basename}'
+        try {
+          const u = new URL(url)
+          const domain = u.hostname.replace(/^www\./, '')
+          const basename = filename
+          const timestamp = Date.now()
+          const out = tpl.replace(/\{domain\}/g, domain).replace(/\{basename\}/g, basename).replace(/\{timestamp\}/g, String(timestamp))
+          resolve(out)
+        } catch (e) {
+          resolve(filename)
+        }
+      })
+    } catch (e) {
+      resolve(filename)
+    }
+  })
+}
+
+// Place new tabs next to the currently active tab
+chrome.tabs.onCreated.addListener(async (tab) => {
+  try {
+    // Only act on normal tabs (ignore those without windowId)
+    if (!tab || typeof tab.windowId === 'undefined') return
+    // find active tab in the same window
+    chrome.tabs.query({ active: true, windowId: tab.windowId }, (tabs) => {
+      const active = tabs && tabs[0]
+      if (!active || active.index === undefined) return
+      // move the newly created tab to active.index + 1
+      try {
+        chrome.tabs.move(tab.id, { index: active.index + 1 }, () => {
+          logLastError('tabs.move')
+        })
+      } catch (e) {
+        // ignore
+      }
+    })
+  } catch (e) {
+    // ignore
+  }
+})
+
+// Register event listeners at top-level so MV3 service worker can wake on events
 chrome.runtime.onInstalled.addListener(postInstall)
 chrome.runtime.onStartup.addListener(postStartup)
 
-chrome.contextMenus.onClicked.addListener(downloadResource)
-
-chrome.commands.getAll((commands) => {
-  // console.log('All registered commands', commands)
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === IMG_DOWNLOAD_MENU_ID) downloadResource(info, tab)
 })
 
 chrome.commands.onCommand.addListener((cmd) => {
-  // console.log(`Command heard: ${cmd}`, cmd)
-  switch (cmd) {
-    case 'save-loaded-image':
-      // console.log('SAVE LOADED IMAGE', cmd)
-      // Updated API call for MV3: chrome.tabs.getSelected is deprecated
-      chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-        const tab = tabs[0];
-        // console.log(`URL OF TAB: ${tab.url}`, tab)
-        downloadResource({ srcUrl: tab.url }, tab, () => {
-          // console.log('Download complete!')
-          chrome.tabs.remove(tab.id, () => {
-            // console.log('Tab closed!', tab)
-          })
-        })
+  if (cmd === 'save-loaded-image') {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs && tabs[0]
+      if (!tab) return
+      downloadResource({ srcUrl: tab.url }, tab, () => {
+        if (tab.id) chrome.tabs.remove(tab.id)
       })
-      break;
-    default:
-      console.error(`Invalid command? wtf? ${cmd}`)
-      break;
+    })
+    return
+  }
+  console.warn('Unknown command', cmd)
+})
+
+// Light-weight download state logging (optional improvement)
+chrome.downloads.onChanged.addListener((delta) => {
+  if (delta && delta.state && delta.state.current) {
+    console.debug('download state', delta.id, delta.state.current)
+  }
+})
+
+// Notify on download completion/failure
+chrome.downloads.onChanged.addListener((d) => {
+  if (!d || !d.state) return
+  if (d.state.current === 'complete') {
+    chrome.downloads.search({ id: d.id }, (items) => {
+      const it = items && items[0]
+      if (!it) return
+      chrome.notifications.create(String(d.id), {
+        type: 'basic',
+        iconUrl: 'img/icon/logo-128.png',
+        title: 'Download complete',
+        message: it.filename || 'Download finished'
+      })
+    })
+  } else if (d.state.current === 'interrupted') {
+    chrome.notifications.create(String(d.id), {
+      type: 'basic',
+      iconUrl: 'img/icon/logo-128.png',
+      title: 'Download interrupted',
+      message: 'A download failed or was interrupted.'
+    })
+  }
+})
+
+// Listen for option changes from options page
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg && msg.type === 'applyDisableShelf') {
+    setShelfEnabled(!(!msg.value))
+    sendResponse({ ok: true })
   }
 })

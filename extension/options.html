@@ -1,1 +1,53 @@
-<h1>This is the options page!</h1>
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Panacea Options</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Source+Code+Pro&display=swap"
+    rel="stylesheet">
+  <!-- Minimal UI library (Bulma-like) via CDN and a small dark theme override -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-css-reset@1.4.0/dist/reset.min.css">
+  <link rel="stylesheet" href="css/options.css">
+</head>
+
+<body>
+  <main class="container">
+    <header class="header">
+      <img src="img/icon/logo-64.png" alt="panacea" class="logo">
+      <h1>Panacea — Options</h1>
+    </header>
+
+    <section class="card">
+      <h2>General</h2>
+      <div class="field">
+        <label class="label">Disable Download Shelf</label>
+        <p class="help">When enabled, Chrome's downloads shelf will be hidden after downloads.</p>
+        <label class="switch">
+          <input type="checkbox" id="opt-disable-shelf">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Filename Templating</h2>
+      <p class="help">Use {domain}, {basename}, or {timestamp}. Example: <code>{domain}/{basename}</code></p>
+      <div class="field">
+        <input id="opt-filename-template" class="input" placeholder="{domain}/{basename}" />
+      </div>
+    </section>
+
+    <section class="card actions">
+      <button id="save-btn" class="btn">Save</button>
+      <span id="status" class="status" aria-live="polite"></span>
+    </section>
+  </main>
+
+  <script src="js/options.js"></script>
+</body>
+
+</html>

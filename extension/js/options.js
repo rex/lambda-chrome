@@ -4,24 +4,30 @@ const DEFAULTS = {
   disableShelf: true,
   filenameTemplate: '{domain}/{basename}'
 }
+DEFAULTS.revealPasswords = false
+DEFAULTS.allowPaste = true
+DEFAULTS.enableRightClickByDefault = false
 
 function qs(id) { return document.getElementById(id) }
 
 async function saveOptions() {
   const disableShelf = qs('opt-disable-shelf').checked
   const filenameTemplate = qs('opt-filename-template').value || DEFAULTS.filenameTemplate
+  const revealPasswords = qs('opt-reveal-passwords').checked
+  const allowPaste = qs('opt-allow-paste').checked
+  const enableRightClickByDefault = qs('opt-enable-rightclick').checked
 
   // Prefer sync storage so settings can sync between browsers; fallback to local
   await new Promise((resolve) => {
     try {
-      chrome.storage.sync.set({ disableShelf, filenameTemplate }, () => {
+      chrome.storage.sync.set({ disableShelf, filenameTemplate, revealPasswords, allowPaste, enableRightClickByDefault }, () => {
         if (chrome.runtime.lastError) {
           // fallback
-          chrome.storage.local.set({ disableShelf, filenameTemplate }, () => resolve())
+          chrome.storage.local.set({ disableShelf, filenameTemplate, revealPasswords, allowPaste, enableRightClickByDefault }, () => resolve())
         } else resolve()
       })
     } catch (e) {
-      chrome.storage.local.set({ disableShelf, filenameTemplate }, () => resolve())
+      chrome.storage.local.set({ disableShelf, filenameTemplate, revealPasswords, allowPaste, enableRightClickByDefault }, () => resolve())
     }
   })
 
@@ -36,11 +42,14 @@ async function saveOptions() {
 function renderOptions(cfg = {}) {
   qs('opt-disable-shelf').checked = cfg.disableShelf
   qs('opt-filename-template').value = cfg.filenameTemplate || DEFAULTS.filenameTemplate
+  qs('opt-reveal-passwords').checked = cfg.revealPasswords
+  qs('opt-allow-paste').checked = cfg.allowPaste
+  qs('opt-enable-rightclick').checked = cfg.enableRightClickByDefault
 }
 
 function loadOptions() {
   try {
-    chrome.storage.sync.get(Object.keys(DEFAULTS), (items) => {
+  chrome.storage.sync.get(Object.keys(DEFAULTS).concat(['revealPasswords','allowPaste','enableRightClickByDefault']), (items) => {
       if (chrome.runtime.lastError) {
         chrome.storage.local.get(Object.keys(DEFAULTS), (items2) => {
           const cfg = Object.assign({}, DEFAULTS, items2)

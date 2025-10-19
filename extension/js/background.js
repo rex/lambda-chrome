@@ -30,6 +30,10 @@ function createContextMenu() {
       title: 'Download Image',
       contexts: ['image']
     }, () => logLastError('createContextMenu'))
+    // context menu for applying bypass on current page
+    try {
+      chrome.contextMenus.create({ id: 'panacea-apply-bypass', title: 'Enable Panacea bypass on this page', contexts: ['all'] }, () => logLastError('createContextMenu-bypass'))
+    } catch (e) {}
   } catch (err) {
     console.warn('createContextMenu exception', err)
   }
@@ -40,7 +44,8 @@ async function postInstall(details) {
   try {
     chrome.storage.sync.get(['disableShelf'], async (items) => {
       const disable = items.disableShelf !== undefined ? !!items.disableShelf : true
-      await setShelfEnabled(disable === true ? false : false)
+      // if disable is true => setShelfEnabled(false). So enabled = !disable
+      await setShelfEnabled(!disable)
       createContextMenu()
     })
   } catch (e) {
@@ -53,7 +58,7 @@ async function postStartup() {
   try {
     chrome.storage.sync.get(['disableShelf'], async (items) => {
       const disable = items.disableShelf !== undefined ? !!items.disableShelf : true
-      await setShelfEnabled(disable === true ? false : false)
+      await setShelfEnabled(!disable)
     })
   } catch (e) {
     await setShelfEnabled(false)
@@ -80,13 +85,20 @@ function normalizeTwitterUrl(url, filename) {
   return { url, filename }
 }
 
-function downloadResource(info, tab, callback = () => {}) {
+async function downloadResource(info, tab, callback = () => {}) {
   try {
     let url = info && info.srcUrl ? String(info.srcUrl).replace(/\?.+$/gi, '') : ''
     let filename = url ? url.substring(url.lastIndexOf('/') + 1) : 'download'
 
     ;({ url, filename } = normalizeTwitterUrl(url, filename))
-    filename = sanitizeFilename(filename)
+
+    // Apply templating (async) before sanitizing
+    try {
+      const templated = await applyTemplate(url, filename)
+      filename = sanitizeFilename(templated)
+    } catch (e) {
+      filename = sanitizeFilename(filename)
+    }
 
     console.debug('panacea: download', { url, filename })
 
@@ -152,6 +164,12 @@ chrome.runtime.onStartup.addListener(postStartup)
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === IMG_DOWNLOAD_MENU_ID) downloadResource(info, tab)
+  if (info.menuItemId === 'panacea-apply-bypass') {
+    // instruct content script in the page to apply bypass features
+    try {
+      chrome.tabs.sendMessage(tab.id, { type: 'applyBypassNow', revealPasswords: true, allowPaste: true, enableRightClick: true }, (resp) => {})
+    } catch (e) {}
+  }
 })
 
 chrome.commands.onCommand.addListener((cmd) => {
@@ -202,7 +220,18 @@ chrome.downloads.onChanged.addListener((d) => {
 // Listen for option changes from options page
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg && msg.type === 'applyDisableShelf') {
-    setShelfEnabled(!(!msg.value))
+    const disable = !!msg.value
+    // persist preference to sync storage (best effort)
+    try {
+      chrome.storage.sync.set({ disableShelf: disable }, () => {
+        // apply: if disable true => set shelf disabled => setShelfEnabled(!disable)
+        setShelfEnabled(!disable)
+      })
+    } catch (e) {
+      chrome.storage.local.set({ disableShelf: disable }, () => {
+        setShelfEnabled(!disable)
+      })
+    }
     sendResponse({ ok: true })
   }
 })

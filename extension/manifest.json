@@ -9,11 +9,21 @@
     "downloads",
     "downloads.shelf",
     "history",
-  "power",
-  "sessions",
-  "storage",
-  "tabs",
-  "notifications"
+    "power",
+    "sessions",
+    "storage",
+    "tabs",
+    "notifications",
+    "scripting"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["js/content/bypass-cs.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
   ],
   "background": {
     "service_worker": "js/background.js"

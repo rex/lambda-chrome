@@ -26,8 +26,8 @@ function setShelfEnabled(enabled) {
 function createContextMenu() {
   try {
     chrome.contextMenus.create({
-      id: IMG_DOWNLOAD_MENU_ID,
-      title: 'Download Image',
+    id: IMG_DOWNLOAD_MENU_ID,
+    title: 'Download image — Lambda',
       contexts: ['image']
     }, () => logLastError('createContextMenu'))
     // context menu for applying bypass on current page

@@ -99,4 +99,16 @@
       sendResponse({ok:true})
     }
   })
+
+  // Also accept window.postMessage calls from page for testing/automation
+  window.addEventListener('message', (ev) => {
+    try {
+      const msg = ev.data && ev.data.__lambda_msg
+      if (!msg) return
+      if (msg.type === 'applyBypassNow') {
+        if (msg.revealPasswords) { revealPasswords(); observeForPasswords() }
+        if (msg.allowPaste || msg.enableRightClick) enablePasteAndRightClick()
+      }
+    } catch (e) {}
+  })
 })();

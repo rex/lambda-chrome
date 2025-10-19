@@ -170,6 +170,19 @@
     return true
   })
 
+  // Accept window.postMessage triggers for automation
+  window.addEventListener('message', (ev) => {
+    try {
+      const msg = ev.data && ev.data.__lambda_msg
+      if (!msg) return
+      if (msg.type === 'probeAndDownloadVisible') {
+        const img = findVisibleImage()
+        if (!img) return
+        try { chrome.runtime.sendMessage({ type: 'downloadFromPage', src: img.src }) } catch (e) {}
+      }
+    } catch (e) {}
+  })
+
   // Helper: find a large visible image on the page
   function findVisibleImage() {
     try {

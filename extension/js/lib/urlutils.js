@@ -13,10 +13,10 @@
  */
 function basenameFromUrl(url) {
   try {
-    const u = new URL(url)
-    const path = u.pathname
-    let name = path.substring(path.lastIndexOf('/')+1) || 'image'
-    return decodeURIComponent(name)
+  const u = new URL(url)
+  const path = u.pathname
+  let name = path.substring(path.lastIndexOf('/')+1) || 'image'
+  return decodeURIComponent(name)
   } catch(e) { return 'image' }
 }
 

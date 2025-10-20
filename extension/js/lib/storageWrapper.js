@@ -18,11 +18,17 @@ function wrap(storage, runtime) {
     async get(keys) {
       return new Promise((resolve) => {
         try {
-          const st = storage && storage.sync ? storage.sync : storage
+          // guarded lodash/get for safe nested access
+          let _get
+          if (typeof require !== 'undefined') {
+            try { _get = require('lodash/get') } catch (e) {}
+          }
+          if (!_get) _get = (o, p, d) => { try { return p.split('.').reduce((a,c)=>a&&a[c], o) } catch(_) { return d } }
+          const st = _get(storage, 'sync') ? _get(storage, 'sync') : storage
           st.get(keys || null, (items) => {
             // if runtime.lastError present, fall back
             if (runtime && runtime.lastError) {
-              const l = (storage && storage.local) ? storage.local : storage
+              const l = _get(storage, 'local') ? _get(storage, 'local') : storage
               l.get(keys || null, (items2) => resolve(items2 || {}))
             } else {
               resolve(items || {})
@@ -41,10 +47,10 @@ function wrap(storage, runtime) {
     async set(obj) {
       return new Promise((resolve) => {
         try {
-          const st = storage && storage.sync ? storage.sync : storage
+          const st = _get(storage, 'sync') ? _get(storage, 'sync') : storage
           st.set(obj, () => {
             if (runtime && runtime.lastError) {
-              const l = (storage && storage.local) ? storage.local : storage
+              const l = _get(storage, 'local') ? _get(storage, 'local') : storage
               l.set(obj, () => resolve())
             } else resolve()
           })

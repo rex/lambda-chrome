@@ -3,15 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
-    "puppeteer": "^23.0.0",
-    "cross-env": "^7.0.3",
-    "mocha": "^10.2.0",
     "chai": "^4.3.7",
+    "cross-env": "^7.0.3",
+    "jsdom-global": "^3.0.2",
+    "mocha": "^10.2.0",
     "nyc": "^15.1.0",
-    "jsdom-global": "^3.0.2"
+    "puppeteer": "^23.0.0"
   },
   "scripts": {
-    "test": "mocha \"extension/test-unit/**/*.spec.js\" --exit",
+  "test": "mocha --file ./extension/test-unit/msw-setup.js \"extension/test-unit/**/*.spec.js\" --exit",
     "coverage": "nyc npm test",
     "test:all": "npm run coverage",
     "clean:coverage": "rimraf coverage .nyc_output || rm -rf coverage .nyc_output",
@@ -28,5 +28,12 @@
       "extension/tests/**",
       "extension/test-unit/**"
     ]
+  },
+  "dependencies": {
+    "ky": "^1.12.0",
+    "lodash": "^4.17.21",
+    "msw": "^2.11.6",
+    "nanoid": "^5.1.6",
+    "sanitize-filename": "^1.6.3"
   }
 }

@@ -20,6 +20,37 @@
 
 const IMG_DOWNLOAD_MENU_ID = 'lambda-cm-dl-img'
 
+// Lodash helpers (guarded so background service worker can load unbundled)
+let _get, _isFunction, _isString, _truncate
+if (typeof require !== 'undefined') {
+  try {
+    _get = require('lodash/get')
+    _isFunction = require('lodash/isFunction')
+    _isString = require('lodash/isString')
+    _truncate = require('lodash/truncate')
+  } catch (e) {}
+}
+if (!_get) {
+  _get = (obj, path, def) => {
+    if (!obj) return def
+    const parts = String(path || '').split('.')
+    let cur = obj
+    for (const p of parts) {
+      if (cur == null) return def
+      cur = cur[p]
+    }
+    return cur === undefined ? def : cur
+  }
+}
+if (!_isFunction) _isFunction = (v) => typeof v === 'function'
+if (!_isString) _isString = (v) => typeof v === 'string'
+if (!_truncate) _truncate = (s, opts = {}) => {
+  const len = (opts && opts.length) || 255
+  const omission = (opts && opts.omission) || ''
+  if (!s) return s
+  return String(s).length > len ? String(s).slice(0, len) + omission : String(s)
+}
+
 // Adapter: if a `chromeAdapter` is injected (tests/refactors), use it; otherwise delegate to `chrome`.
 // Support both an explicitly-declared `chromeAdapter` identifier and `global.chromeAdapter` (tests set this).
 const adapter = (typeof chromeAdapter !== 'undefined' && chromeAdapter)
@@ -66,11 +97,9 @@ const logLastError = (ctx = '') => {
 function setShelfEnabled(enabled) {
   return new Promise((resolve) => {
     try {
-      const _setShelf = (adapter.downloads && typeof adapter.downloads.setShelfEnabled === 'function')
-        ? adapter.downloads.setShelfEnabled
-        : (typeof chrome !== 'undefined' && chrome.downloads && typeof chrome.downloads.setShelfEnabled === 'function')
-          ? chrome.downloads.setShelfEnabled
-          : null
+      const _setShelf = _isFunction(_get(adapter, 'downloads.setShelfEnabled'))
+        ? _get(adapter, 'downloads.setShelfEnabled')
+        : (_isFunction(_get(globalThis, 'chrome.downloads.setShelfEnabled')) ? _get(globalThis, 'chrome.downloads.setShelfEnabled') : null)
       if (_setShelf) {
         _setShelf(enabled, () => {
           logLastError('setShelfEnabled')
@@ -89,11 +118,9 @@ function setShelfEnabled(enabled) {
 
 function createContextMenu() {
   try {
-    const _create = (adapter.contextMenus && typeof adapter.contextMenus.create === 'function')
-      ? adapter.contextMenus.create
-      : (typeof chrome !== 'undefined' && chrome.contextMenus && typeof chrome.contextMenus.create === 'function')
-        ? chrome.contextMenus.create
-        : null
+    const _create = _isFunction(_get(adapter, 'contextMenus.create'))
+      ? _get(adapter, 'contextMenus.create')
+      : (_isFunction(_get(globalThis, 'chrome.contextMenus.create')) ? _get(globalThis, 'chrome.contextMenus.create') : null)
     if (_create) {
       _create({ id: IMG_DOWNLOAD_MENU_ID, title: 'Download image — Lambda', contexts: ['image'] }, () => logLastError('createContextMenu'))
     }
@@ -143,13 +170,20 @@ async function postStartup() {
 
 function sanitizeFilename(name) {
   if (!name) return 'download'
+  // prefer shared lib implementation when available
+  if (typeof require !== 'undefined') {
+    try {
+      const lib = require('./lib/sanitizeFilename')
+      if (lib && typeof lib.sanitizeFilename === 'function') return lib.sanitizeFilename(name)
+    } catch (e) {}
+  }
   try { name = decodeURIComponent(name) } catch (e) { /* ignore */ }
   // remove trailing modifiers and query-like segments
-  name = name.replace(/[:?#].*$/g, '')
+  name = String(name).replace(/[:?#].*$/g, '')
   // Replace characters that are invalid on most file systems
   name = name.replace(/[\\/:"<>|?*\x00-\x1F]/g, '_')
-  // Limit length
-  return name.slice(0, 255) || 'download'
+  // Limit length using truncate helper
+  return _truncate(name, { length: 255, omission: '' }) || 'download'
 }
 
 function normalizeTwitterUrl(url, filename) {
@@ -210,7 +244,7 @@ if (typeof require !== 'undefined') {
 
       // attempt to apply filename template via storage if available
       const storage = (opts && opts.adapter && opts.adapter.storage) || (adapter && adapter.storage)
-      const getFn = storage && storage.sync && typeof storage.sync.get === 'function' ? storage.sync.get : null
+  const getFn = _isFunction(_get(storage, 'sync.get')) ? _get(storage, 'sync.get') : null
       if (getFn) {
         return await new Promise((resolve) => {
           try {
@@ -263,7 +297,7 @@ if (typeof require !== 'undefined') {
     try {
       if (!candidate || !candidate.url) return { ok: false, error: 'invalid_candidate' }
       const ad = adapterArg || adapter
-      const downloader = ad && ad.downloads && typeof ad.downloads.download === 'function' ? ad.downloads.download : (typeof chrome !== 'undefined' && chrome.downloads && typeof chrome.downloads.download === 'function' ? chrome.downloads.download : null)
+  const downloader = _isFunction(_get(ad, 'downloads.download')) ? _get(ad, 'downloads.download') : (_isFunction(_get(globalThis, 'chrome.downloads.download')) ? _get(globalThis, 'chrome.downloads.download') : null)
       if (!downloader) return { ok: false, error: 'no_download_api' }
       return await new Promise((resolve) => {
         try {
@@ -281,7 +315,7 @@ if (typeof require !== 'undefined') {
 async function performDownload(candidate, callback = ()=>{}) {
   console.debug('lambda: performDownload', candidate)
   const res = await libPerformDownload(adapter, candidate)
-  if (typeof callback === 'function') callback(res && res.id)
+  if (_isFunction(callback)) callback(res && res.id)
   return res
 }
 
@@ -289,11 +323,7 @@ async function performDownload(candidate, callback = ()=>{}) {
 function applyTemplate(url, filename) {
   return new Promise((resolve) => {
     try {
-      const _storageGet = (adapter.storage && adapter.storage.sync && typeof adapter.storage.sync.get === 'function')
-        ? adapter.storage.sync.get
-        : (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync && typeof chrome.storage.sync.get === 'function')
-          ? chrome.storage.sync.get
-          : null
+  const _storageGet = _isFunction(_get(adapter, 'storage.sync.get')) ? _get(adapter, 'storage.sync.get') : (_isFunction(_get(globalThis, 'chrome.storage.sync.get')) ? _get(globalThis, 'chrome.storage.sync.get') : null)
       if (_storageGet) {
         _storageGet(['filenameTemplate'], (items) => {
           let tpl = items && items.filenameTemplate ? items.filenameTemplate : '{domain}/{basename}'
@@ -458,6 +488,11 @@ const _onDownloadChangedTarget2 = (adapter.downloads && adapter.downloads.onChan
     : null
 if (_onDownloadChangedTarget2 && typeof _onDownloadChangedTarget2.addListener === 'function') _onDownloadChangedTarget2.addListener((d) => {
   if (!d || !d.state) return
+  // lazy nanoid import for notification id fallback
+  let _nanoid
+  if (typeof require !== 'undefined') {
+    try { _nanoid = require('nanoid').nanoid } catch (e) { try { _nanoid = require('nanoid') } catch (e2) {} }
+  }
   if (d.state.current === 'complete') {
     const _dlSearch = (adapter.downloads && typeof adapter.downloads.search === 'function') ? adapter.downloads.search : (typeof chrome !== 'undefined' && chrome.downloads && typeof chrome.downloads.search === 'function') ? chrome.downloads.search : null
     if (_dlSearch) {
@@ -465,7 +500,8 @@ if (_onDownloadChangedTarget2 && typeof _onDownloadChangedTarget2.addListener ==
         const it = items && items[0]
         if (!it) return
         if (adapter.notifications && typeof adapter.notifications.create === 'function') {
-          adapter.notifications.create(String(d.id), {
+          const nid = d && d.id ? String(d.id) : (_nanoid ? _nanoid() : String(Date.now()))
+          adapter.notifications.create(nid, {
             type: 'basic',
             iconUrl: 'img/icon/lambda-128.png',
             title: 'Download complete',
@@ -473,7 +509,8 @@ if (_onDownloadChangedTarget2 && typeof _onDownloadChangedTarget2.addListener ==
           })
         } else {
           const _create = (typeof chrome !== 'undefined' && chrome.notifications && typeof chrome.notifications.create === 'function') ? chrome.notifications.create : null
-          if (_create) _create(String(d.id), {
+          const nid = d && d.id ? String(d.id) : (_nanoid ? _nanoid() : String(Date.now()))
+          if (_create) _create(nid, {
             type: 'basic',
             iconUrl: 'img/icon/lambda-128.png',
             title: 'Download complete',
@@ -484,7 +521,8 @@ if (_onDownloadChangedTarget2 && typeof _onDownloadChangedTarget2.addListener ==
     }
   } else if (d.state.current === 'interrupted') {
     if (adapter.notifications && typeof adapter.notifications.create === 'function') {
-      adapter.notifications.create(String(d.id), {
+      const nid = d && d.id ? String(d.id) : (_nanoid ? _nanoid() : String(Date.now()))
+      adapter.notifications.create(nid, {
         type: 'basic',
         iconUrl: 'img/icon/lambda-128.png',
         title: 'Download interrupted',
@@ -492,7 +530,8 @@ if (_onDownloadChangedTarget2 && typeof _onDownloadChangedTarget2.addListener ==
       })
     } else {
       const _create = (typeof chrome !== 'undefined' && chrome.notifications && typeof chrome.notifications.create === 'function') ? chrome.notifications.create : null
-      if (_create) _create(String(d.id), {
+      const nid = d && d.id ? String(d.id) : (_nanoid ? _nanoid() : String(Date.now()))
+      if (_create) _create(nid, {
         type: 'basic',
         iconUrl: 'img/icon/lambda-128.png',
         title: 'Download interrupted',

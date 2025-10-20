@@ -13,10 +13,18 @@
  */
 function sanitizeFilename(name) {
   if (!name) return 'download'
+  // prefer sanitize-filename package when available
+  if (typeof require !== 'undefined') {
+    try {
+      const sf = require('sanitize-filename')
+      try { return sf(String(decodeURIComponent(name))).slice(0, 255) || 'download' } catch (e) { return sf(String(name)).slice(0,255) || 'download' }
+    } catch (e) {}
+  }
+  // fallback: conservative sanitization
   try { name = decodeURIComponent(name) } catch (e) { /* ignore */ }
   name = name.replace(/[:?#].*$/g, '')
-  name = name.replace(/[\/:"<>|?*\x00-\x1F]/g, '_')
-  return name.slice(0, 255) || 'download'
+  name = name.replace(/[\\/:"<>|?*\x00-\x1F]/g, '_')
+  return String(name).slice(0, 255) || 'download'
 }
 
 module.exports = { sanitizeFilename }

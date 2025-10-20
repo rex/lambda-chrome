@@ -190,7 +190,50 @@ function normalizeTwitterUrl(url, filename) {
 }
 
 // Given an initial src and tab, probe content script and network to determine final url/filename
-const { getBestCandidate: libGetBest } = require('./lib/getBestCandidate')
+let libGetBest
+if (typeof require !== 'undefined') {
+  /* Node (tests) or bundled env */
+  try { libGetBest = require('./lib/getBestCandidate').getBestCandidate } catch (e) { libGetBest = null }
+} else if (globalThis && globalThis.__libGetBest) {
+  libGetBest = globalThis.__libGetBest
+} else {
+  // Browser/service-worker runtime without bundling: provide a lightweight functional fallback
+  libGetBest = async (info, tab, opts = {}) => {
+    try {
+      const src = info && info.srcUrl ? String(info.srcUrl) : ''
+      if (!src) return { ok: false, error: 'empty_src' }
+      const u = new URL(src, (typeof location !== 'undefined' && location.href) ? location.href : src)
+      let filename = u.pathname.split('/').pop() || 'image'
+      filename = filename.replace(/[:?#].*$/g, '')
+      filename = filename.replace(/[\\/:"<>|?*\x00-\x1F]/g, '_')
+      filename = filename.slice(0, 255) || 'download'
+
+      // attempt to apply filename template via storage if available
+      const storage = (opts && opts.adapter && opts.adapter.storage) || (adapter && adapter.storage)
+      const getFn = storage && storage.sync && typeof storage.sync.get === 'function' ? storage.sync.get : null
+      if (getFn) {
+        return await new Promise((resolve) => {
+          try {
+            getFn(['filenameTemplate'], (items) => {
+              let tpl = items && items.filenameTemplate ? items.filenameTemplate : '{domain}/{basename}'
+              if (!tpl) tpl = '{domain}/{basename}'
+              try {
+                const domain = u.hostname.replace(/^www\./, '')
+                const basename = filename
+                const out = tpl.replace(/\{domain\}/g, domain).replace(/\{basename\}/g, basename).replace(/\{timestamp\}/g, String(Date.now()))
+                const safe = out.replace(/[\\/:"<>|?*\x00-\x1F]/g, '_').slice(0, 255) || 'download'
+                resolve({ ok: true, url: src, filename: safe })
+              } catch (e) { resolve({ ok: true, url: src, filename }) }
+            })
+          } catch (e) { resolve({ ok: true, url: src, filename }) }
+        })
+      }
+      return { ok: true, url: src, filename }
+    } catch (e) {
+      return { ok: false, error: e && e.message ? e.message : String(e) }
+    }
+  }
+}
 
 async function getBestCandidate(info, tab) {
   const fetchFn = (u, opts) => fetch(u, opts)
@@ -209,7 +252,32 @@ async function getBestCandidate(info, tab) {
   return libGetBest(info, tab, { adapter, fetchFn, applyTemplateFn, fetchOptions: { timeout: 4000, retries: 1 } })
 }
 
-const { performDownload: libPerformDownload } = require('./lib/performDownload')
+let libPerformDownload
+if (typeof require !== 'undefined') {
+  try { libPerformDownload = require('./lib/performDownload').performDownload } catch (e) { libPerformDownload = null }
+} else if (globalThis && globalThis.__libPerformDownload) {
+  libPerformDownload = globalThis.__libPerformDownload
+} else {
+  // lightweight fallback: call adapter.downloads.download or chrome.downloads.download if available
+  libPerformDownload = async (adapterArg, candidate) => {
+    try {
+      if (!candidate || !candidate.url) return { ok: false, error: 'invalid_candidate' }
+      const ad = adapterArg || adapter
+      const downloader = ad && ad.downloads && typeof ad.downloads.download === 'function' ? ad.downloads.download : (typeof chrome !== 'undefined' && chrome.downloads && typeof chrome.downloads.download === 'function' ? chrome.downloads.download : null)
+      if (!downloader) return { ok: false, error: 'no_download_api' }
+      return await new Promise((resolve) => {
+        try {
+          downloader({ url: candidate.url, filename: candidate.filename, saveAs: false }, (id) => {
+            resolve({ ok: true, id })
+          })
+        } catch (e) { resolve({ ok: false, error: e && e.message ? e.message : String(e) }) }
+      })
+    } catch (e) {
+      return { ok: false, error: e && e.message ? e.message : String(e) }
+    }
+  }
+}
+
 async function performDownload(candidate, callback = ()=>{}) {
   console.debug('lambda: performDownload', candidate)
   const res = await libPerformDownload(adapter, candidate)
@@ -287,28 +355,36 @@ if (adapter && adapter.tabs && adapter.tabs.onCreated && typeof adapter.tabs.onC
 
 ;
 // Register event listeners at top-level so MV3 service worker can wake on events
-const _onInstalledAdder = (adapter.runtime && adapter.runtime.onInstalled && typeof adapter.runtime.onInstalled.addListener === 'function')
-  ? adapter.runtime.onInstalled.addListener
+const _onInstalledTarget = (adapter.runtime && adapter.runtime.onInstalled && typeof adapter.runtime.onInstalled.addListener === 'function')
+  ? adapter.runtime.onInstalled
   : (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onInstalled && typeof chrome.runtime.onInstalled.addListener === 'function')
-    ? chrome.runtime.onInstalled.addListener
-    : () => {}
-_onInstalledAdder(postInstall)
+    ? chrome.runtime.onInstalled
+    : null
+if (_onInstalledTarget && typeof _onInstalledTarget.addListener === 'function') _onInstalledTarget.addListener(postInstall)
 
-const _onStartupAdder = (adapter.runtime && adapter.runtime.onStartup && typeof adapter.runtime.onStartup.addListener === 'function')
-  ? adapter.runtime.onStartup.addListener
+const _onStartupTarget = (adapter.runtime && adapter.runtime.onStartup && typeof adapter.runtime.onStartup.addListener === 'function')
+  ? adapter.runtime.onStartup
   : (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onStartup && typeof chrome.runtime.onStartup.addListener === 'function')
-    ? chrome.runtime.onStartup.addListener
-    : () => {}
-_onStartupAdder(postStartup)
+    ? chrome.runtime.onStartup
+    : null
+if (_onStartupTarget && typeof _onStartupTarget.addListener === 'function') _onStartupTarget.addListener(postStartup)
 
-const _onContextMenuClick = (adapter.contextMenus && adapter.contextMenus.onClicked && typeof adapter.contextMenus.onClicked.addListener === 'function')
-  ? adapter.contextMenus.onClicked.addListener
+const _onContextMenuTarget = (adapter.contextMenus && adapter.contextMenus.onClicked && typeof adapter.contextMenus.onClicked.addListener === 'function')
+  ? adapter.contextMenus.onClicked
   : (typeof chrome !== 'undefined' && chrome.contextMenus && chrome.contextMenus.onClicked && typeof chrome.contextMenus.onClicked.addListener === 'function')
-    ? chrome.contextMenus.onClicked.addListener
-    : () => {}
-_onContextMenuClick((info, tab) => {
+    ? chrome.contextMenus.onClicked
+    : null
+if (_onContextMenuTarget && typeof _onContextMenuTarget.addListener === 'function') _onContextMenuTarget.addListener((info, tab) => {
   if (info.menuItemId === IMG_DOWNLOAD_MENU_ID) {
-    getBestCandidate(info, tab).then((cand) => performDownload(cand))
+    getBestCandidate(info, tab).then((cand) => {
+      if (!cand || !cand.ok) {
+        console.error('getBestCandidate failed for context menu', cand)
+        return
+      }
+      performDownload(cand).then((res) => {
+        if (!res || !res.ok) console.error('performDownload failed for context menu', res)
+      })
+    }).catch((e)=> console.error('getBestCandidate threw', e))
   }
   if (info.menuItemId === 'lambda-apply-bypass') {
     // instruct content script in the page to apply bypass features
@@ -336,12 +412,12 @@ if (typeof module !== 'undefined' && module.exports) {
   }
 }
 
-const _onCommandAdder = (adapter.commands && adapter.commands.onCommand && typeof adapter.commands.onCommand.addListener === 'function')
-  ? adapter.commands.onCommand.addListener
+const _onCommandTarget = (adapter.commands && adapter.commands.onCommand && typeof adapter.commands.onCommand.addListener === 'function')
+  ? adapter.commands.onCommand
   : (typeof chrome !== 'undefined' && chrome.commands && chrome.commands.onCommand && typeof chrome.commands.onCommand.addListener === 'function')
-    ? chrome.commands.onCommand.addListener
-    : () => {}
-_onCommandAdder((cmd) => {
+    ? chrome.commands.onCommand
+    : null
+if (_onCommandTarget && typeof _onCommandTarget.addListener === 'function') _onCommandTarget.addListener((cmd) => {
   if (cmd === 'save-loaded-image') {
     const _tabsQuery = (adapter.tabs && typeof adapter.tabs.query === 'function') ? adapter.tabs.query : (typeof chrome !== 'undefined' && chrome.tabs && typeof chrome.tabs.query === 'function') ? chrome.tabs.query : null
     if (_tabsQuery) {
@@ -349,8 +425,12 @@ _onCommandAdder((cmd) => {
         const tab = tabs && tabs[0]
         if (!tab) return
         getBestCandidate({ srcUrl: tab.url }, tab).then((cand) => {
-          performDownload(cand, () => { if (tab.id && adapter.tabs && typeof adapter.tabs.remove === 'function') adapter.tabs.remove(tab.id) })
-        })
+          if (!cand || !cand.ok) { console.error('getBestCandidate (command) failed', cand); return }
+          performDownload(cand).then((r) => {
+            if (!r || !r.ok) console.error('performDownload (command) failed', r)
+            else if (tab.id && adapter.tabs && typeof adapter.tabs.remove === 'function') adapter.tabs.remove(tab.id)
+          })
+        }).catch(e => console.error('getBestCandidate (command) threw', e))
       })
     }
     return
@@ -359,24 +439,24 @@ _onCommandAdder((cmd) => {
 })
 
 // Light-weight download state logging (optional improvement)
-const _onDownloadChanged = (adapter.downloads && adapter.downloads.onChanged && typeof adapter.downloads.onChanged.addListener === 'function'
-  ? adapter.downloads.onChanged.addListener
+const _onDownloadChangedTarget = (adapter.downloads && adapter.downloads.onChanged && typeof adapter.downloads.onChanged.addListener === 'function')
+  ? adapter.downloads.onChanged
   : (typeof chrome !== 'undefined' && chrome.downloads && chrome.downloads.onChanged && typeof chrome.downloads.onChanged.addListener === 'function')
-    ? chrome.downloads.onChanged.addListener
-    : () => {})
-_onDownloadChanged((delta) => {
+    ? chrome.downloads.onChanged
+    : null
+if (_onDownloadChangedTarget && typeof _onDownloadChangedTarget.addListener === 'function') _onDownloadChangedTarget.addListener((delta) => {
   if (delta && delta.state && delta.state.current) {
     console.debug('download state', delta.id, delta.state.current)
   }
 })
 
 // Notify on download completion/failure
-const _onDownloadChanged2 = (adapter.downloads && adapter.downloads.onChanged && typeof adapter.downloads.onChanged.addListener === 'function'
-  ? adapter.downloads.onChanged.addListener
+const _onDownloadChangedTarget2 = (adapter.downloads && adapter.downloads.onChanged && typeof adapter.downloads.onChanged.addListener === 'function')
+  ? adapter.downloads.onChanged
   : (typeof chrome !== 'undefined' && chrome.downloads && chrome.downloads.onChanged && typeof chrome.downloads.onChanged.addListener === 'function')
-    ? chrome.downloads.onChanged.addListener
-    : () => {})
-_onDownloadChanged2((d) => {
+    ? chrome.downloads.onChanged
+    : null
+if (_onDownloadChangedTarget2 && typeof _onDownloadChangedTarget2.addListener === 'function') _onDownloadChangedTarget2.addListener((d) => {
   if (!d || !d.state) return
   if (d.state.current === 'complete') {
     const _dlSearch = (adapter.downloads && typeof adapter.downloads.search === 'function') ? adapter.downloads.search : (typeof chrome !== 'undefined' && chrome.downloads && typeof chrome.downloads.search === 'function') ? chrome.downloads.search : null
@@ -423,12 +503,12 @@ _onDownloadChanged2((d) => {
 })
 
 // Listen for option changes from options page
-const _onRuntimeMessage = (adapter.runtime && adapter.runtime.onMessage && typeof adapter.runtime.onMessage.addListener === 'function')
-  ? adapter.runtime.onMessage.addListener
+const _onRuntimeMessageTarget = (adapter.runtime && adapter.runtime.onMessage && typeof adapter.runtime.onMessage.addListener === 'function')
+  ? adapter.runtime.onMessage
   : (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage && typeof chrome.runtime.onMessage.addListener === 'function')
-    ? chrome.runtime.onMessage.addListener
-    : () => {}
-_onRuntimeMessage((msg, sender, sendResponse) => {
+    ? chrome.runtime.onMessage
+    : null
+if (_onRuntimeMessageTarget && typeof _onRuntimeMessageTarget.addListener === 'function') _onRuntimeMessageTarget.addListener((msg, sender, sendResponse) => {
   if (msg && msg.type === 'applyDisableShelf') {
     const disable = !!msg.value
     // persist preference to sync storage (best effort)
@@ -452,15 +532,31 @@ _onRuntimeMessage((msg, sender, sendResponse) => {
         // build info and call downloadResource
         const info = { srcUrl: src }
         getBestCandidate(info, sender.tab).then((cand) => {
-          performDownload(cand, (did) => sendResponse({ ok: true, id: did }))
-        })
+          if (!cand || !cand.ok) {
+            console.error('getBestCandidate (runtime) failed', cand)
+            sendResponse({ ok: false, error: cand && cand.error ? cand.error : 'getBestCandidate-failed' })
+            return
+          }
+          performDownload(cand).then((didRes) => {
+            if (!didRes || !didRes.ok) {
+              console.error('performDownload (runtime) failed', didRes)
+              sendResponse({ ok: false, error: didRes && didRes.error ? didRes.error : 'performDownload-failed' })
+            } else {
+              sendResponse({ ok: true, id: didRes.id })
+            }
+          }).catch(e => { console.error('performDownload (runtime) threw', e); sendResponse({ ok: false, error: String(e) }) })
+        }).catch(e => { console.error('getBestCandidate (runtime) threw', e); sendResponse({ ok:false, error: String(e) }) })
       })
     } else {
       // no storage get available — just attempt download
       const info = { srcUrl: src }
       getBestCandidate(info, sender.tab).then((cand) => {
-        performDownload(cand, (did) => sendResponse({ ok: true, id: did }))
-      })
+        if (!cand || !cand.ok) { console.error('getBestCandidate (runtime-no-storage) failed', cand); sendResponse({ ok:false, error: cand && cand.error ? cand.error : 'getBestCandidate-failed' }); return }
+        performDownload(cand).then((didRes) => {
+          if (!didRes || !didRes.ok) { console.error('performDownload (runtime-no-storage) failed', didRes); sendResponse({ ok:false, error: didRes && didRes.error ? didRes.error : 'performDownload-failed' }); return }
+          sendResponse({ ok: true, id: didRes.id })
+        }).catch(e => { console.error('performDownload (runtime-no-storage) threw', e); sendResponse({ ok:false, error: String(e) }) })
+      }).catch(e => { console.error('getBestCandidate (runtime-no-storage) threw', e); sendResponse({ ok:false, error: String(e) }) })
     }
     return true
   }

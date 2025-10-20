@@ -32,7 +32,7 @@ const adapter = {
   contextMenus: { create: function () {}, onClicked: { addListener: (fn) => { listeners.contextMenusOnClicked = fn } } },
   tabs: {
   sendMessage: function (tabId, msg, cb) { if (typeof cb === 'function') cb(null) },
-    query: function (q, cb) { cb([{ id: 1, index: 2 }]) },
+    query: function (q, cb) { cb([{ id: 1, index: 2, url: 'https://example.com/x.jpg' }]) },
     move: function () {},
     remove: function () {},
     onCreated: { addListener: (fn) => { listeners.tabsOnCreated = fn } }

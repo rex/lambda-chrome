@@ -1,4 +1,14 @@
-// Simple fetch wrapper with timeout and retry
+/**
+ * fetchWithTimeout
+ * A thin wrapper around fetch supporting timeout (via AbortController) and retries.
+ *
+ * Params:
+ *  - url: string
+ *  - init: fetch init object
+ *  - opts: { timeout(ms)=5000, retries=1, fetchFn=optional fetch implementation }
+ *
+ * Throws if no fetch implementation is available or all retries fail.
+ */
 async function fetchWithTimeout(url, init = {}, { timeout = 5000, retries = 1, fetchFn = (typeof fetch !== 'undefined' ? fetch : null) } = {}) {
   const actualFetch = fetchFn || (typeof fetch !== 'undefined' ? fetch : null)
   if (!actualFetch) throw new Error('fetch not available')

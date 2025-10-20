@@ -1,3 +1,20 @@
+/**
+ * getBestCandidate
+ * Probe and determine the best download candidate for an image src.
+ *
+ * Inputs:
+ *  - { srcUrl }: object with srcUrl string
+ *  - tab: chrome.tabs.Tab-like object (used for sendMessage probe)
+ *  - options: { adapter, fetchFn, applyTemplateFn, fetchOptions }
+ *
+ * Behavior:
+ *  - Optionally asks a content script probe for a better url/filename
+ *  - Normalizes twitter image URLs
+ *  - HEAD-probes the resource to infer content-type or content-disposition
+ *  - Applies filename template via applyTemplateFn and sanitizes the result
+ *
+ * Returns: Promise resolving to { ok: true, url, filename } or { ok: false, error }
+ */
 const { sanitizeFilename } = require('./sanitizeFilename')
 const { normalizeTwitterUrl } = require('./normalizeTwitter')
 const { fetchWithTimeout } = require('./fetchWithTimeout')
@@ -5,8 +22,8 @@ const { parseContentDisposition } = require('./contentDisposition')
 
 async function getBestCandidate({ srcUrl }, tab, { adapter, fetchFn, applyTemplateFn, fetchOptions } = {}) {
   try {
-    const src = srcUrl ? String(srcUrl) : ''
-    if (!src) return null
+  const src = srcUrl ? String(srcUrl) : ''
+  if (!src) return { ok: false, error: 'empty_src' }
 
     // ask content script
     const probe = await new Promise((resolve) => {

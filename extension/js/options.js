@@ -1,4 +1,25 @@
-// Options page logic for Lambda extension
+/**
+ * Options page logic for Lambda extension
+ *
+ * Exports (attached to window/global for tests):
+ *  - saveOptions(): saves UI values to chrome.storage (prefers storage.sync)
+ *  - loadOptions(): loads values and calls renderOptions
+ *  - renderOptions(cfg): applies a config object to the UI
+ *
+ * Storage integration uses `wrap` from `./lib/storageWrapper` with sync/local fallback.
+ *
+ * Inputs/Outputs:
+ *  - UI fields are gathered from DOM elements with ids prefixed `opt-` and persisted to storage.
+ *  - `loadOptions` reads storage and calls `renderOptions(cfg)` where `cfg` is merged with DEFAULTS.
+ *
+ * Side-effects:
+ *  - Persists preferences to `chrome.storage.sync` (falls back to `chrome.storage.local`).
+ *  - Sends a runtime message `{ type: 'applyDisableShelf', value }` to request immediate application of the download-shelf preference.
+ *  - Updates the `#status` element text to indicate save completion.
+ *
+ * Error modes:
+ *  - Storage operations are best-effort; failures are silently ignored to avoid breaking the UI. `loadOptions` falls back to callback-style APIs when promise-based wrapper fails.
+ */
 
 const DEFAULTS = {
   disableShelf: true,

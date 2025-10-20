@@ -1,5 +1,22 @@
-// Lambda MV3 background service worker (refactored)
-// Consolidates install/startup behavior and download helpers.
+/**
+ * background.js — Lambda MV3 service worker
+ *
+ * Purpose:
+ *  - Central background/service-worker logic for the extension: install/startup hooks,
+ *    context menu creation, download orchestration, tab behavior, and option propagation.
+ *
+ * Public behaviors/side-effects:
+ *  - Registers `chrome.runtime.onInstalled` and `onStartup` handlers to apply stored preferences.
+ *  - Creates context menu entries for image download and bypass actions.
+ *  - Wakes on command/menus to probe and download images via `getBestCandidate` and `performDownload`.
+ *  - Listens for storage-driven messages (applyDisableShelf) to persist and apply the download-shelf preference.
+ *  - Moves newly created tabs to open next to the active tab (no-op in test adapters).
+ *
+ * Error modes & testing:
+ *  - Uses an injected `chromeAdapter` when available for testability; otherwise falls back to the real `chrome` APIs.
+ *  - Where APIs may throw (missing `chrome` in tests), the adapter provides minimal stubs and functions become no-ops.
+ *  - All interactions with chrome.* are best-effort and avoid throwing; errors are logged via `console.warn`.
+ */
 
 const IMG_DOWNLOAD_MENU_ID = 'lambda-cm-dl-img'
 

@@ -1,4 +1,9 @@
-// Minimal parser for Content-Disposition header to extract filename
+/**
+ * parseContentDisposition
+ * Minimal parser for Content-Disposition header to extract filename or filename*.
+ * Supports simple cases like: filename="name.jpg" and filename*=UTF-8''name.jpg
+ * Returns the decoded filename string or null if none found.
+ */
 function parseContentDisposition(header) {
   if (!header || typeof header !== 'string') return null
   // RFC 6266 simple parsing: look for filename* or filename tokens

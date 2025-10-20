@@ -1,3 +1,13 @@
+/**
+ * performDownload
+ * Wrapper that invokes chrome.downloads.download via an adapter and returns a Promise.
+ *
+ * Inputs:
+ *  - adapter: object exposing downloads.download (usually chromeAdapter or chrome)
+ *  - candidate: { url: string, filename: string }
+ *
+ * Returns: Promise<{ ok: true, id: downloadId } | { ok: false, error: string }>
+ */
 function performDownload(adapter, candidate) {
   return new Promise((resolve) => {
     if (!candidate || !candidate.url) return resolve({ ok: false, error: 'invalid_candidate' })

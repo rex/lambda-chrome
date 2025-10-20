@@ -1,5 +1,16 @@
-// Promise-based wrapper around chrome.storage that prefers sync and falls back to local.
-// Provides get(keys) and set(obj).
+/**
+ * storageWrapper.js
+ * Promise-based wrapper around chrome.storage that prefers sync and falls back to local.
+ * Exports: wrap(storage, runtime) -> { get(keys): Promise, set(obj): Promise }
+ *
+ * Inputs:
+ *  - storage: chrome.storage or an object with sync/local get/set methods
+ *  - runtime: chrome.runtime (optional) used to inspect runtime.lastError
+ *
+ * Behavior:
+ *  - Attempts sync.get/set first; on runtime.lastError or thrown errors falls back to local
+ *  - Always resolves (never rejects) with a best-effort result
+ */
 
 function wrap(storage, runtime) {
   // storage: { sync: { get, set }, local: { get, set } }

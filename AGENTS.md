@@ -60,3 +60,14 @@ Where to look for important logic
 Contact
 
 - This repository is personal — when in doubt, run tests and ask the owner (project metadata) for policy.
+
+Documentation & Agent Policy (MANDATORY)
+
+This repository enforces a strict documentation policy for both humans and automated agents. Follow these rules without exception:
+
+- All NEW code (functions, modules, classes, exported APIs) MUST include comprehensive JSDoc comments describing inputs, outputs, side-effects, and error modes.
+- Existing documentation (README.md, AGENTS.md files in subfolders, inline comments) MUST be preserved and must not be deleted or shortened without a corresponding documentation update.
+- Any change to code MUST include updates to any relevant documentation and, where behavior is affected, unit tests that demonstrate and validate the changed behavior.
+- Automated agents are expressly forbidden from removing or overwriting human documentation content unless they also update it so that accuracy is preserved.
+
+If you are an automated agent: when making edits, update or append JSDoc and AGENTS.md entries. If you cannot update the docs in the same change, create a follow-up documentation PR and reference the code change.

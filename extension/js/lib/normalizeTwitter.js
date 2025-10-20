@@ -1,3 +1,18 @@
+/**
+ * normalizeTwitterUrl
+ * Normalize twitter image URLs (pbs.twimg.com) to request the 'large' variant and
+ * produce a reasonable filename.
+ *
+ * Inputs:
+ *  - url: string
+ *  - filename: current filename candidate
+ *
+ * Outputs:
+ *  - { url, filename }
+ *
+ * Side-effects: none.
+ * Error modes: returns the original inputs if parsing fails.
+ */
 function normalizeTwitterUrl(url, filename) {
   try {
     if (!url) return { url, filename }

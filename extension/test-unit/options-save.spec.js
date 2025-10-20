@@ -10,9 +10,13 @@ document.body.innerHTML = html
 
 // spy for runtime messages
 let sent = null
+const jestChrome = require('jest-chrome')
 global.chromeAdapter = { storage: chromeMock.storage, runtime: { sendMessage: (m) => { sent = m } } }
-// also provide global.chrome so options.js loadOptions can call chrome.storage
-global.chrome = { storage: chromeMock.storage, runtime: { sendMessage: (m) => { sent = m } } }
+// wire the jest-chrome global to use our storage mock and capture sendMessage
+global.chrome = global.chrome || jestChrome
+global.chrome.storage = chromeMock.storage
+global.chrome.runtime = global.chrome.runtime || {}
+global.chrome.runtime.sendMessage = (m) => { sent = m }
 
 // require the options script after wiring chromeAdapter and chrome
 require('../js/options')

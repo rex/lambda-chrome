@@ -8,8 +8,13 @@ const html = fs.readFileSync(path.resolve(__dirname, '..', 'options.html'), 'utf
 document.body.innerHTML = html
 
 const chromeMock = require('../test-mocks/chrome-mock')
+const jestChrome = require('jest-chrome')
 // make chromeAdapter available globally for options.js to use
 global.chromeAdapter = { storage: chromeMock.storage, runtime: { sendMessage: () => {} } }
+// also wire jest-chrome for any direct chrome usage in options.js
+global.chrome = global.chrome || jestChrome
+global.chrome.storage = chromeMock.storage
+global.chrome.runtime = global.chrome.runtime || {}
 
 // require the options script after wiring chromeAdapter
 require('../js/options')

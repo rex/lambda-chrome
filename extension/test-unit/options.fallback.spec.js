@@ -10,7 +10,11 @@ document.body.innerHTML = html
 const chromeMock = require('../test-mocks/chrome-mock')
 
 // simulate runtime.lastError by using the chrome mock storage and setting runtime.lastError
-global.chrome = { storage: chromeMock.storage, runtime: { lastError: true } }
+const jestChrome = require('jest-chrome')
+global.chrome = global.chrome || jestChrome
+global.chrome.storage = chromeMock.storage
+global.chrome.runtime = global.chrome.runtime || {}
+global.chrome.runtime.lastError = true
 
 // require options after wiring global chrome
 require('../js/options')

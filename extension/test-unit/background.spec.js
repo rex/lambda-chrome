@@ -7,11 +7,15 @@ describe('background module (unit)', function () {
     // inject adapter before requiring background so module uses it
     adapter = require('../test-mocks/chrome-adapter')
     global.chromeAdapter = adapter
+    // ensure global.chrome is present and points at jest-chrome for any direct chrome usage
+    const jestChrome = require('jest-chrome')
+    global.chrome = global.chrome || jestChrome
     // clear require cache and require background
     delete require.cache[require.resolve('../../extension/js/background')]
     this.bg = require('../../extension/js/background')
   })
   afterEach(function () {
+    if (global.chrome && global.chrome._reset) global.chrome._reset()
     delete global.chromeAdapter
   })
 

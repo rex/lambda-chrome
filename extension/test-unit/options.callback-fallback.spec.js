@@ -3,7 +3,8 @@ const { expect } = require('chai')
 
 describe('options fallback path', function () {
   afterEach(function () {
-    delete global.chrome
+    // reset jest-chrome state if present
+    if (global.chrome && global.chrome._reset) global.chrome._reset()
   })
 
   it('loadOptions falls back to local storage when sync.get throws', function (done) {
@@ -32,14 +33,14 @@ describe('options fallback path', function () {
     let calledCfg = null
     global.renderOptions = (cfg) => { calledCfg = cfg }
 
-    // now set up chrome mock used by the callback fallback path
-    global.chrome = {
-      storage: {
-        sync: { get: function () { throw new Error('sync.get unavailable') } },
-        local: { get: function (keys, cb) { localCalled = true; cb({ disableShelf: false }) } }
-      },
-      runtime: {}
+    // set up jest-chrome and wire storage behaviors for callback path
+    const jestChrome = require('jest-chrome')
+    global.chrome = global.chrome || jestChrome
+    global.chrome.storage = {
+      sync: { get: function () { throw new Error('sync.get unavailable') } },
+      local: { get: function (keys, cb) { localCalled = true; cb({ disableShelf: false }) } }
     }
+    global.chrome.runtime = global.chrome.runtime || {}
 
     // explicitly call loadOptions (DOMContentLoaded already fired during require)
     expect(typeof global.loadOptions).to.equal('function')

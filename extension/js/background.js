@@ -21,7 +21,12 @@
 const IMG_DOWNLOAD_MENU_ID = 'lambda-cm-dl-img'
 
 // Adapter: if a `chromeAdapter` is injected (tests/refactors), use it; otherwise delegate to `chrome`.
-const adapter = (typeof chromeAdapter !== 'undefined' && chromeAdapter) ? chromeAdapter : (function(){
+// Support both an explicitly-declared `chromeAdapter` identifier and `global.chromeAdapter` (tests set this).
+const adapter = (typeof chromeAdapter !== 'undefined' && chromeAdapter)
+  ? chromeAdapter
+  : (typeof global !== 'undefined' && global.chromeAdapter)
+    ? global.chromeAdapter
+    : (function(){
   try {
     return {
       storage: chrome.storage,
@@ -30,8 +35,8 @@ const adapter = (typeof chromeAdapter !== 'undefined' && chromeAdapter) ? chrome
         setShelfEnabled: (v, cb) => chrome.downloads.setShelfEnabled(v, cb),
         onChanged: chrome.downloads.onChanged
       },
-      contextMenus: chrome.contextMenus,
-      tabs: chrome.tabs,
+  contextMenus: chrome.contextMenus,
+  tabs: chrome.tabs,
       notifications: chrome.notifications,
       runtime: chrome.runtime,
       commands: chrome.commands
@@ -51,18 +56,30 @@ const adapter = (typeof chromeAdapter !== 'undefined' && chromeAdapter) ? chrome
 })()
 
 const logLastError = (ctx = '') => {
-  if (chrome.runtime.lastError) {
-    console.warn(ctx, chrome.runtime.lastError && chrome.runtime.lastError.message)
-  }
+  try {
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.lastError) {
+      console.warn(ctx, chrome.runtime.lastError && chrome.runtime.lastError.message)
+    }
+  } catch (e) {}
 }
 
 function setShelfEnabled(enabled) {
   return new Promise((resolve) => {
     try {
-      chrome.downloads.setShelfEnabled(enabled, () => {
-        logLastError('setShelfEnabled')
+      const _setShelf = (adapter.downloads && typeof adapter.downloads.setShelfEnabled === 'function')
+        ? adapter.downloads.setShelfEnabled
+        : (typeof chrome !== 'undefined' && chrome.downloads && typeof chrome.downloads.setShelfEnabled === 'function')
+          ? chrome.downloads.setShelfEnabled
+          : null
+      if (_setShelf) {
+        _setShelf(enabled, () => {
+          logLastError('setShelfEnabled')
+          resolve()
+        })
+      } else {
+        // no-op fallback
         resolve()
-      })
+      }
     } catch (err) {
       console.warn('setShelfEnabled exception', err)
       resolve()
@@ -72,14 +89,17 @@ function setShelfEnabled(enabled) {
 
 function createContextMenu() {
   try {
-    chrome.contextMenus.create({
-    id: IMG_DOWNLOAD_MENU_ID,
-    title: 'Download image — Lambda',
-      contexts: ['image']
-    }, () => logLastError('createContextMenu'))
+    const _create = (adapter.contextMenus && typeof adapter.contextMenus.create === 'function')
+      ? adapter.contextMenus.create
+      : (typeof chrome !== 'undefined' && chrome.contextMenus && typeof chrome.contextMenus.create === 'function')
+        ? chrome.contextMenus.create
+        : null
+    if (_create) {
+      _create({ id: IMG_DOWNLOAD_MENU_ID, title: 'Download image — Lambda', contexts: ['image'] }, () => logLastError('createContextMenu'))
+    }
     // context menu for applying bypass on current page
     try {
-      chrome.contextMenus.create({ id: 'lambda-apply-bypass', title: 'Enable Lambda bypass on this page', contexts: ['all'] }, () => logLastError('createContextMenu-bypass'))
+      if (_create) _create({ id: 'lambda-apply-bypass', title: 'Enable Lambda bypass on this page', contexts: ['all'] }, () => logLastError('createContextMenu-bypass'))
     } catch (e) {}
   } catch (err) {
     console.warn('createContextMenu exception', err)
@@ -93,11 +113,20 @@ async function postInstall(details) {
       const disable = items.disableShelf !== undefined ? !!items.disableShelf : true
       // if disable is true => setShelfEnabled(false). So enabled = !disable
       await setShelfEnabled(!disable)
-      createContextMenu()
+      // prefer the exported createContextMenu (so tests can override it); fall back to local
+      if (typeof module !== 'undefined' && module.exports && typeof module.exports.createContextMenu === 'function') {
+        module.exports.createContextMenu()
+      } else {
+        createContextMenu()
+      }
     })
   } catch (e) {
     await setShelfEnabled(false)
-    createContextMenu()
+    if (typeof module !== 'undefined' && module.exports && typeof module.exports.createContextMenu === 'function') {
+      module.exports.createContextMenu()
+    } else {
+      createContextMenu()
+    }
   }
 }
 
@@ -192,20 +221,29 @@ async function performDownload(candidate, callback = ()=>{}) {
 function applyTemplate(url, filename) {
   return new Promise((resolve) => {
     try {
-      chrome.storage.sync.get(['filenameTemplate'], (items) => {
-        let tpl = items && items.filenameTemplate ? items.filenameTemplate : '{domain}/{basename}'
-        if (!tpl) tpl = '{domain}/{basename}'
-        try {
-          const u = new URL(url)
-          const domain = u.hostname.replace(/^www\./, '')
-          const basename = filename
-          const timestamp = Date.now()
-          const out = tpl.replace(/\{domain\}/g, domain).replace(/\{basename\}/g, basename).replace(/\{timestamp\}/g, String(timestamp))
-          resolve(out)
-        } catch (e) {
-          resolve(filename)
-        }
-      })
+      const _storageGet = (adapter.storage && adapter.storage.sync && typeof adapter.storage.sync.get === 'function')
+        ? adapter.storage.sync.get
+        : (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync && typeof chrome.storage.sync.get === 'function')
+          ? chrome.storage.sync.get
+          : null
+      if (_storageGet) {
+        _storageGet(['filenameTemplate'], (items) => {
+          let tpl = items && items.filenameTemplate ? items.filenameTemplate : '{domain}/{basename}'
+          if (!tpl) tpl = '{domain}/{basename}'
+          try {
+            const u = new URL(url)
+            const domain = u.hostname.replace(/^www\./, '')
+            const basename = filename
+            const timestamp = Date.now()
+            const out = tpl.replace(/\{domain\}/g, domain).replace(/\{basename\}/g, basename).replace(/\{timestamp\}/g, String(timestamp))
+            resolve(out)
+          } catch (e) {
+            resolve(filename)
+          }
+        })
+      } else {
+        resolve(filename)
+      }
     } catch (e) {
       resolve(filename)
     }
@@ -213,7 +251,9 @@ function applyTemplate(url, filename) {
 }
 
 // Place new tabs next to the currently active tab
-adapter.tabs.onCreated && adapter.tabs.onCreated.addListener ? adapter.tabs.onCreated.addListener(async (tab) => {
+// Defensive registration: only attempt to access nested addListener if the path exists.
+if (adapter && adapter.tabs && adapter.tabs.onCreated && typeof adapter.tabs.onCreated.addListener === 'function') {
+  adapter.tabs.onCreated.addListener(async (tab) => {
   try {
     // Only act on normal tabs (ignore those without windowId)
     if (!tab || typeof tab.windowId === 'undefined') return
@@ -230,7 +270,9 @@ adapter.tabs.onCreated && adapter.tabs.onCreated.addListener ? adapter.tabs.onCr
   } catch (e) {
     // ignore
   }
-}) : (chrome.tabs.onCreated && chrome.tabs.onCreated.addListener(async (tab) => {
+  })
+} else if (chrome && chrome.tabs && chrome.tabs.onCreated && typeof chrome.tabs.onCreated.addListener === 'function') {
+  chrome.tabs.onCreated.addListener(async (tab) => {
   // fallback to chrome.tabs.onCreated if adapter doesn't expose it
   try {
     if (!tab || typeof tab.windowId === 'undefined') return
@@ -240,13 +282,31 @@ adapter.tabs.onCreated && adapter.tabs.onCreated.addListener ? adapter.tabs.onCr
       try { chrome.tabs.move(tab.id, { index: active.index + 1 }, () => logLastError('tabs.move')) } catch (e) {}
     })
   } catch (e) {}
-}))
+  })
+}
 
+;
 // Register event listeners at top-level so MV3 service worker can wake on events
-chrome.runtime.onInstalled.addListener(postInstall)
-chrome.runtime.onStartup.addListener(postStartup)
+const _onInstalledAdder = (adapter.runtime && adapter.runtime.onInstalled && typeof adapter.runtime.onInstalled.addListener === 'function')
+  ? adapter.runtime.onInstalled.addListener
+  : (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onInstalled && typeof chrome.runtime.onInstalled.addListener === 'function')
+    ? chrome.runtime.onInstalled.addListener
+    : () => {}
+_onInstalledAdder(postInstall)
 
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+const _onStartupAdder = (adapter.runtime && adapter.runtime.onStartup && typeof adapter.runtime.onStartup.addListener === 'function')
+  ? adapter.runtime.onStartup.addListener
+  : (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onStartup && typeof chrome.runtime.onStartup.addListener === 'function')
+    ? chrome.runtime.onStartup.addListener
+    : () => {}
+_onStartupAdder(postStartup)
+
+const _onContextMenuClick = (adapter.contextMenus && adapter.contextMenus.onClicked && typeof adapter.contextMenus.onClicked.addListener === 'function')
+  ? adapter.contextMenus.onClicked.addListener
+  : (typeof chrome !== 'undefined' && chrome.contextMenus && chrome.contextMenus.onClicked && typeof chrome.contextMenus.onClicked.addListener === 'function')
+    ? chrome.contextMenus.onClicked.addListener
+    : () => {}
+_onContextMenuClick((info, tab) => {
   if (info.menuItemId === IMG_DOWNLOAD_MENU_ID) {
     getBestCandidate(info, tab).then((cand) => performDownload(cand))
   }
@@ -258,48 +318,92 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   }
 })
 
-chrome.commands.onCommand.addListener((cmd) => {
+// Export internals for unit testing. These are non-functional exports used only by tests.
+// They do not change runtime behavior when the service worker is loaded by Chrome.
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    IMG_DOWNLOAD_MENU_ID,
+    adapter,
+    setShelfEnabled,
+    createContextMenu,
+    postInstall,
+    postStartup,
+    sanitizeFilename,
+    normalizeTwitterUrl,
+    getBestCandidate,
+    performDownload,
+    applyTemplate
+  }
+}
+
+const _onCommandAdder = (adapter.commands && adapter.commands.onCommand && typeof adapter.commands.onCommand.addListener === 'function')
+  ? adapter.commands.onCommand.addListener
+  : (typeof chrome !== 'undefined' && chrome.commands && chrome.commands.onCommand && typeof chrome.commands.onCommand.addListener === 'function')
+    ? chrome.commands.onCommand.addListener
+    : () => {}
+_onCommandAdder((cmd) => {
   if (cmd === 'save-loaded-image') {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const tab = tabs && tabs[0]
-      if (!tab) return
-      getBestCandidate({ srcUrl: tab.url }, tab).then((cand) => {
-        performDownload(cand, () => { if (tab.id) adapter.tabs.remove(tab.id) })
+    const _tabsQuery = (adapter.tabs && typeof adapter.tabs.query === 'function') ? adapter.tabs.query : (typeof chrome !== 'undefined' && chrome.tabs && typeof chrome.tabs.query === 'function') ? chrome.tabs.query : null
+    if (_tabsQuery) {
+      _tabsQuery({ active: true, currentWindow: true }, (tabs) => {
+        const tab = tabs && tabs[0]
+        if (!tab) return
+        getBestCandidate({ srcUrl: tab.url }, tab).then((cand) => {
+          performDownload(cand, () => { if (tab.id && adapter.tabs && typeof adapter.tabs.remove === 'function') adapter.tabs.remove(tab.id) })
+        })
       })
-    })
+    }
     return
   }
   console.warn('Unknown command', cmd)
 })
 
 // Light-weight download state logging (optional improvement)
-(adapter.downloads && adapter.downloads.onChanged && adapter.downloads.onChanged.addListener ? adapter.downloads.onChanged.addListener : chrome.downloads.onChanged.addListener)((delta) => {
+const _onDownloadChanged = (adapter.downloads && adapter.downloads.onChanged && typeof adapter.downloads.onChanged.addListener === 'function'
+  ? adapter.downloads.onChanged.addListener
+  : (typeof chrome !== 'undefined' && chrome.downloads && chrome.downloads.onChanged && typeof chrome.downloads.onChanged.addListener === 'function')
+    ? chrome.downloads.onChanged.addListener
+    : () => {})
+_onDownloadChanged((delta) => {
   if (delta && delta.state && delta.state.current) {
     console.debug('download state', delta.id, delta.state.current)
   }
 })
 
 // Notify on download completion/failure
-(adapter.downloads && adapter.downloads.onChanged && adapter.downloads.onChanged.addListener ? adapter.downloads.onChanged.addListener : chrome.downloads.onChanged.addListener)((d) => {
+const _onDownloadChanged2 = (adapter.downloads && adapter.downloads.onChanged && typeof adapter.downloads.onChanged.addListener === 'function'
+  ? adapter.downloads.onChanged.addListener
+  : (typeof chrome !== 'undefined' && chrome.downloads && chrome.downloads.onChanged && typeof chrome.downloads.onChanged.addListener === 'function')
+    ? chrome.downloads.onChanged.addListener
+    : () => {})
+_onDownloadChanged2((d) => {
   if (!d || !d.state) return
   if (d.state.current === 'complete') {
-    chrome.downloads.search({ id: d.id }, (items) => {
-      const it = items && items[0]
-      if (!it) return
-      adapter.notifications.create ? adapter.notifications.create(String(d.id), {
-        type: 'basic',
-        iconUrl: 'img/icon/lambda-128.png',
-        title: 'Download complete',
-        message: it.filename || 'Download finished'
-      }) : chrome.notifications.create(String(d.id), {
-        type: 'basic',
-        iconUrl: 'img/icon/lambda-128.png',
-        title: 'Download complete',
-        message: it.filename || 'Download finished'
+    const _dlSearch = (adapter.downloads && typeof adapter.downloads.search === 'function') ? adapter.downloads.search : (typeof chrome !== 'undefined' && chrome.downloads && typeof chrome.downloads.search === 'function') ? chrome.downloads.search : null
+    if (_dlSearch) {
+      _dlSearch({ id: d.id }, (items) => {
+        const it = items && items[0]
+        if (!it) return
+        if (adapter.notifications && typeof adapter.notifications.create === 'function') {
+          adapter.notifications.create(String(d.id), {
+            type: 'basic',
+            iconUrl: 'img/icon/lambda-128.png',
+            title: 'Download complete',
+            message: it.filename || 'Download finished'
+          })
+        } else {
+          const _create = (typeof chrome !== 'undefined' && chrome.notifications && typeof chrome.notifications.create === 'function') ? chrome.notifications.create : null
+          if (_create) _create(String(d.id), {
+            type: 'basic',
+            iconUrl: 'img/icon/lambda-128.png',
+            title: 'Download complete',
+            message: it.filename || 'Download finished'
+          })
+        }
       })
-    })
+    }
   } else if (d.state.current === 'interrupted') {
-    if (adapter.notifications.create) {
+    if (adapter.notifications && typeof adapter.notifications.create === 'function') {
       adapter.notifications.create(String(d.id), {
         type: 'basic',
         iconUrl: 'img/icon/lambda-128.png',
@@ -307,7 +411,8 @@ chrome.commands.onCommand.addListener((cmd) => {
         message: 'A download failed or was interrupted.'
       })
     } else {
-      chrome.notifications.create(String(d.id), {
+      const _create = (typeof chrome !== 'undefined' && chrome.notifications && typeof chrome.notifications.create === 'function') ? chrome.notifications.create : null
+      if (_create) _create(String(d.id), {
         type: 'basic',
         iconUrl: 'img/icon/lambda-128.png',
         title: 'Download interrupted',
@@ -318,34 +423,45 @@ chrome.commands.onCommand.addListener((cmd) => {
 })
 
 // Listen for option changes from options page
-(adapter.runtime && adapter.runtime.onMessage && adapter.runtime.onMessage.addListener ? adapter.runtime.onMessage.addListener : chrome.runtime.onMessage.addListener)((msg, sender, sendResponse) => {
+const _onRuntimeMessage = (adapter.runtime && adapter.runtime.onMessage && typeof adapter.runtime.onMessage.addListener === 'function')
+  ? adapter.runtime.onMessage.addListener
+  : (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage && typeof chrome.runtime.onMessage.addListener === 'function')
+    ? chrome.runtime.onMessage.addListener
+    : () => {}
+_onRuntimeMessage((msg, sender, sendResponse) => {
   if (msg && msg.type === 'applyDisableShelf') {
     const disable = !!msg.value
     // persist preference to sync storage (best effort)
     try {
-      chrome.storage.sync.set({ disableShelf: disable }, () => {
-        // apply: if disable true => set shelf disabled => setShelfEnabled(!disable)
-        setShelfEnabled(!disable)
-      })
+      const _set = (adapter.storage && adapter.storage.sync && typeof adapter.storage.sync.set === 'function') ? adapter.storage.sync.set : (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync && typeof chrome.storage.sync.set === 'function') ? chrome.storage.sync.set : null
+      if (_set) _set({ disableShelf: disable }, () => { setShelfEnabled(!disable) })
     } catch (e) {
-      chrome.storage.local.set({ disableShelf: disable }, () => {
-        setShelfEnabled(!disable)
-      })
+      const _localSet = (adapter.storage && adapter.storage.local && typeof adapter.storage.local.set === 'function') ? adapter.storage.local.set : (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local && typeof chrome.storage.local.set === 'function') ? chrome.storage.local.set : null
+      if (_localSet) _localSet({ disableShelf: disable }, () => { setShelfEnabled(!disable) })
     }
     sendResponse({ ok: true })
   }
   if (msg && msg.type === 'downloadFromPage') {
     const src = msg.src
     // gather user prefs
-    chrome.storage.sync.get(['preferOriginalFilename','forcedExtension'], (items) => {
-      const preferOriginal = items && items.preferOriginalFilename !== undefined ? !!items.preferOriginalFilename : true
-      const forcedExt = items && items.forcedExtension ? items.forcedExtension : ''
-      // build info and call downloadResource
+    const _get = (adapter.storage && adapter.storage.sync && typeof adapter.storage.sync.get === 'function') ? adapter.storage.sync.get : (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync && typeof chrome.storage.sync.get === 'function') ? chrome.storage.sync.get : null
+    if (_get) {
+      _get(['preferOriginalFilename','forcedExtension'], (items) => {
+        const preferOriginal = items && items.preferOriginalFilename !== undefined ? !!items.preferOriginalFilename : true
+        const forcedExt = items && items.forcedExtension ? items.forcedExtension : ''
+        // build info and call downloadResource
+        const info = { srcUrl: src }
+        getBestCandidate(info, sender.tab).then((cand) => {
+          performDownload(cand, (did) => sendResponse({ ok: true, id: did }))
+        })
+      })
+    } else {
+      // no storage get available — just attempt download
       const info = { srcUrl: src }
       getBestCandidate(info, sender.tab).then((cand) => {
         performDownload(cand, (did) => sendResponse({ ok: true, id: did }))
       })
-    })
+    }
     return true
   }
 })

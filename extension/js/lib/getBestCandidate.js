@@ -1,7 +1,9 @@
 const { sanitizeFilename } = require('./sanitizeFilename')
 const { normalizeTwitterUrl } = require('./normalizeTwitter')
+const { fetchWithTimeout } = require('./fetchWithTimeout')
+const { parseContentDisposition } = require('./contentDisposition')
 
-async function getBestCandidate({ srcUrl }, tab, { adapter, fetchFn, applyTemplateFn }) {
+async function getBestCandidate({ srcUrl }, tab, { adapter, fetchFn, applyTemplateFn, fetchOptions } = {}) {
   try {
     const src = srcUrl ? String(srcUrl) : ''
     if (!src) return null
@@ -25,9 +27,14 @@ async function getBestCandidate({ srcUrl }, tab, { adapter, fetchFn, applyTempla
 
     if (!/\.[a-z0-9]{1,6}(?:$|[?#])/i.test(filename)) {
       try {
-        const head = await fetchFn(url, { method: 'HEAD' })
+        const head = await (fetchFn ? fetchFn(url, { method: 'HEAD' }) : fetchWithTimeout(url, { method: 'HEAD' }, fetchOptions))
         const ct = head.headers.get('content-type') || ''
-        if (ct) {
+        const cd = head.headers.get('content-disposition') || ''
+        // prefer content-disposition filename
+        const cdName = parseContentDisposition(cd)
+        if (cdName) {
+          filename = cdName
+        } else if (ct) {
           const ext = ct.split('/')[1] || 'bin'
           filename = `${filename}.${ext}`
         }
@@ -41,9 +48,9 @@ async function getBestCandidate({ srcUrl }, tab, { adapter, fetchFn, applyTempla
       filename = sanitizeFilename(filename)
     }
 
-    return { url, filename }
+  return { ok: true, url, filename }
   } catch (e) {
-    return null
+  return { ok: false, error: e && e.message ? e.message : String(e) }
   }
 }
 

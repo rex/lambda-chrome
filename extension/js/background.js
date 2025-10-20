@@ -160,13 +160,15 @@ async function getBestCandidate(info, tab) {
       })
     } catch (e) { resolve(filename) }
   })
-  return libGetBest(info, tab, { adapter, fetchFn, applyTemplateFn })
+  return libGetBest(info, tab, { adapter, fetchFn, applyTemplateFn, fetchOptions: { timeout: 4000, retries: 1 } })
 }
 
 const { performDownload: libPerformDownload } = require('./lib/performDownload')
-function performDownload(candidate, callback = ()=>{}) {
+async function performDownload(candidate, callback = ()=>{}) {
   console.debug('lambda: performDownload', candidate)
-  libPerformDownload(adapter, candidate, callback)
+  const res = await libPerformDownload(adapter, candidate)
+  if (typeof callback === 'function') callback(res && res.id)
+  return res
 }
 
 // Apply filename templating if configured

@@ -1,0 +1,3362 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset='utf-8'>
+  <title>lambda-chrome 0.1.0 | Documentation</title>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link href='assets/bass.css' rel='stylesheet'>
+  <link href='assets/style.css' rel='stylesheet'>
+  <link href='assets/github.css' rel='stylesheet'>
+  <link href='assets/split.css' rel='stylesheet'>
+</head>
+<body class='documentation m0'>
+    <div class='flex'>
+      <div id='split-left' class='overflow-auto fs0 height-viewport-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'>lambda-chrome</h3>
+          <div class='mb1'><code>0.1.0</code></div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block input'
+            spellcheck='false'
+            autocapitalize='off'
+            autocorrect='off'
+            type='text' />
+          <div id='toc'>
+            <ul class='list-reset h5 py1-ul'>
+              
+                
+                <li><a
+                  href='#extensionbackground'
+                  class="">
+                  extension/background
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#setshelfenabled'
+                  class="">
+                  setShelfEnabled
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#createcontextmenu'
+                  class="">
+                  createContextMenu
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#postinstall'
+                  class="">
+                  postInstall
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#poststartup'
+                  class="">
+                  postStartup
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#sanitizefilename'
+                  class="">
+                  sanitizeFilename
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#sanitizefilename'
+                  class="">
+                  sanitizeFilename
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#sanitizefilename'
+                  class="">
+                  sanitizeFilename
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#normalizetwitterurl'
+                  class="">
+                  normalizeTwitterUrl
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#normalizetwitterurl'
+                  class="">
+                  normalizeTwitterUrl
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#getbestcandidate'
+                  class="">
+                  getBestCandidate
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#module'
+                  class="">
+                  module
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#defaults'
+                  class="">
+                  DEFAULTS
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#defaults'
+                  class="">
+                  DEFAULTS
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#revealpasswords'
+                  class="">
+                  revealPasswords
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#observeforpasswords'
+                  class="">
+                  observeForPasswords
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#enablepasteandrightclick'
+                  class="">
+                  enablePasteAndRightClick
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#basenamefromurl'
+                  class="">
+                  basenameFromUrl
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#basenamefromurl'
+                  class="">
+                  basenameFromUrl
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#basenamefromurl'
+                  class="">
+                  basenameFromUrl
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#probeurl'
+                  class="">
+                  probeUrl
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#parsesrcset'
+                  class="">
+                  parseSrcset
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#parsesrcset'
+                  class="">
+                  parseSrcset
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#choosebestsrcsetentry'
+                  class="">
+                  chooseBestSrcsetEntry
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#choosebestsrcsetentry'
+                  class="">
+                  chooseBestSrcsetEntry
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#urlfrombackgroundimage'
+                  class="">
+                  urlFromBackgroundImage
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#urlfrombackgroundimage'
+                  class="">
+                  urlFromBackgroundImage
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#findbestcandidateindom'
+                  class="">
+                  findBestCandidateInDom
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#applytemplatestring'
+                  class="">
+                  applyTemplateString
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#parsecontentdisposition'
+                  class="">
+                  parseContentDisposition
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#fetchwithtimeout'
+                  class="">
+                  fetchWithTimeout
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#performdownload'
+                  class="">
+                  performDownload
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#wrap'
+                  class="">
+                  wrap
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#get'
+                  class="">
+                  get
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#set'
+                  class="">
+                  set
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#saveoptions'
+                  class="">
+                  saveOptions
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#renderoptions'
+                  class="">
+                  renderOptions
+                  
+                </a>
+                
+                </li>
+              
+                
+                <li><a
+                  href='#loadoptions'
+                  class="">
+                  loadOptions
+                  
+                </a>
+                
+                </li>
+              
+            </ul>
+          </div>
+          <div class='mt1 h6 quiet'>
+            <a href='https://documentation.js.org/reading-documentation.html'>Need help reading this?</a>
+          </div>
+        </div>
+      </div>
+      <div id='split-right' class='relative overflow-auto height-viewport-100'>
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='extensionbackground'>
+      extension/background
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>background.js — Lambda MV3 service worker</p>
+<p>Module summary
+This module contains the top-level background/service-worker logic for the
+extension. It wires Chrome runtime events, provides the context menu and
+commands for user-initiated downloads, coordinates probing &#x26; filename
+selection, and delegates the final download to the downloads API. The file
+is written defensively so it can be executed in unit tests (via the
+<code>chromeAdapter</code> test shim) or in a real Chrome MV3 environment.</p>
+<p>Exported surface (for tests)</p>
+<ul>
+<li>IMG_DOWNLOAD_MENU_ID (string): id used for the context menu item</li>
+<li>adapter (object): runtime adapter used (real <code>chrome</code> or test shim)</li>
+<li>setShelfEnabled(enabled): Promise — enable/disable the download shelf</li>
+<li>createContextMenu(): void — create extension context menu entries</li>
+<li>postInstall(details): Promise — install-time initialization</li>
+<li>postStartup(): Promise — startup-time initialization</li>
+<li>sanitizeFilename(name): string — conservative filename sanitizer (SW fallback)</li>
+<li>normalizeTwitterUrl(url, filename): {url,filename} — normalize pbs.twimg.com image URLs</li>
+<li>getBestCandidate(info, tab): Promise&#x3C;{ok:boolean,url?:string,filename?:string,error?:string}> — select a download candidate</li>
+<li>performDownload(candidate, callback?): Promise&#x3C;{ok:boolean,id?:any,error?:string}> — trigger the download</li>
+<li>applyTemplate(url, filename): Promise — apply filename template from storage</li>
+</ul>
+<p>Contracts &#x26; data shapes</p>
+<ul>
+<li>Candidate: { url: string, filename: string }</li>
+<li>Probe result: { ok: true, url: string, filename: string } or { ok: false, error: string }</li>
+</ul>
+<p>Design notes</p>
+<ul>
+<li>Defensive adapters: the <code>adapter</code> object abstracts chrome.* APIs so tests
+can inject a lightweight shim. The code always checks that nested
+functions (e.g. adapter.downloads.download) exist before calling them.</li>
+<li>Guarded optional deps: where useful the module prefers small helper
+libs (e.g. lodash helpers) when available at runtime, but defines
+in-file fallbacks so the unbundled MV3 service worker can load.</li>
+<li>Error handling: methods attempt to return structured error objects rather
+than throwing to make background logic easier to test and resilient at
+runtime.</li>
+</ul>
+<p>Edge cases considered</p>
+<ul>
+<li>Missing or malformed URLs, blob/data: URLs, redirected responses, missing
+headers (Content-Type / Content-Disposition), CDN-hosted images (Twitter),
+and content scripts that may provide improved candidates.</li>
+</ul>
+<p>Testing helpers</p>
+<ul>
+<li>The module exports internal helpers (getBestCandidate, performDownload,
+etc.) so unit tests can call and assert behavior without side effects.</li>
+</ul>
+
+    <div class='pre p1 fill-light mt0'>extension/background</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='setshelfenabled'>
+      setShelfEnabled
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Set the download shelf visibility via the downloads API.</p>
+<p>This function attempts to call the platform API exposed at
+<code>adapter.downloads.setShelfEnabled(enabled, cb)</code> and resolves after the
+callback runs. When the API is not available the function resolves
+immediately (no-op). Errors are caught and logged; the returned promise
+always resolves to allow best-effort application at install/startup.</p>
+
+    <div class='pre p1 fill-light mt0'>setShelfEnabled(enabled: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>enabled</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>)</code>
+	    true to show the download shelf, false to hide it.
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>:
+        Resolves after the API invocation or immediately when not available.
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='createcontextmenu'>
+      createContextMenu
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Create the extension context menu entries used for image download and
+bypass actions.</p>
+<p>This function prefers <code>adapter.contextMenus.create</code> when provided; it
+performs defensive checks so it is safe to call in headless tests.</p>
+
+    <div class='pre p1 fill-light mt0'>createContextMenu(): void</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code>void</code>:
+        
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='postinstall'>
+      postInstall
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Handle runtime.onInstalled event.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Read persisted preference for the download-shelf (<code>disableShelf</code>) and
+apply it via <code>setShelfEnabled</code>.</li>
+<li>Ensure the extension context menu entries are created.</li>
+</ul>
+<p>The function uses <code>adapter.storage.sync.get</code> when available and falls back
+to safe defaults. It never throws; errors are logged and handled.</p>
+
+    <div class='pre p1 fill-light mt0'>postInstall(details: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>details</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
+	    onInstalled details object provided by Chrome.
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>:
+        
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='poststartup'>
+      postStartup
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Handle runtime.onStartup event.</p>
+<p>Reads the <code>disableShelf</code> preference and applies the shelf setting. This is
+invoked when the service worker starts and is resilient to missing storage
+APIs.</p>
+
+    <div class='pre p1 fill-light mt0'>postStartup(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>:
+        
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='sanitizefilename'>
+      sanitizeFilename
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Conservative filename sanitizer used by the service worker.</p>
+<p>Behavior:</p>
+<ul>
+<li>Prefers the shared <code>./lib/sanitizeFilename</code> implementation when available
+(keeps a single canonical sanitizer in the lib). If the lib is not
+available, this function performs a conservative fallback sanitization.</li>
+<li>Attempts to decode URI components, strips query and fragment-like
+fragments, replaces filesystem-problematic characters with underscores,
+and truncates to a safe maximum (255 bytes/characters).</li>
+</ul>
+
+    <div class='pre p1 fill-light mt0'>sanitizeFilename(name: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>name</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    Input filename or URL segment to sanitize.
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>:
+        A sanitized filename suitable for saving; never an empty string.
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='sanitizefilename'>
+      sanitizeFilename
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Determine the best download candidate for an image source URL.</p>
+<p>Process overview:</p>
+<ol>
+<li>Validate input and optionally ask a content-script probe for a better URL
+and filename (via adapter.tabs.sendMessage).</li>
+<li>Normalize known provider URLs (e.g. Twitter) to request high-quality
+variants.</li>
+<li>If the filename lacks an extension, attempt a HEAD request to infer the
+content-type or parse <code>Content-Disposition</code> for a suggested filename.</li>
+<li>Apply a filename template (via applyTemplateFn) and sanitize the result.</li>
+</ol>
+
+    <div class='pre p1 fill-light mt0'>sanitizeFilename</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>args</span> <code class='quiet'>({srcUrl: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>})</code>
+	    Object containing the image source URL.
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>tab</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
+	    Tab-like object (should expose an 
+<code>id</code>
+ property) used
+when sending a probe message to the content script.
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>options</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>?)</code>
+	    Optional helpers and overrides.
+
+          </div>
+          
+          <table class='mt1 mb2 fixed-table h5 col-12'>
+            <colgroup>
+              <col width='30%' />
+              <col width='70%' />
+            </colgroup>
+            <thead>
+              <tr class='bold fill-light'>
+                <th>Name</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody class='mt1'>
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>options.adapter</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>?</code>
+  </td>
+  <td class='break-word'><span>Adapter that exposes 
+<code>tabs.sendMessage</code>
+.
+</span></td>
+</tr>
+
+
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>options.fetchFn</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function">Function</a>?</code>
+  </td>
+  <td class='break-word'><span>Optional fetch implementation to use for HEAD probes.
+</span></td>
+</tr>
+
+
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>options.applyTemplateFn</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function">Function</a>?</code>
+  </td>
+  <td class='break-word'><span>Async function (url, filename) => templatedFilename.
+</span></td>
+</tr>
+
+
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>options.fetchOptions</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>?</code>
+  </td>
+  <td class='break-word'><span>Extra options passed to fetchWithTimeout when used.
+</span></td>
+</tr>
+
+
+              
+            </tbody>
+          </table>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;({ok: <code>true</code>, url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, filename: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>} | {ok: <code>false</code>, error: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>})></code>:
+        Resolves with the chosen URL and sanitized filename on success, or an
+error object when selection fails.
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='sanitizefilename'>
+      sanitizeFilename
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Normalize and sanitize a filename string for cross-platform filesystem use.</p>
+<p>This function prefers to use the <code>sanitize-filename</code> package when available.
+It falls back to a conservative regex-based sanitizer when the package is
+not present or decoding fails. The returned value is always a non-empty
+string suitable for use as a filesystem filename; when input is empty or
+cannot be normalized, the literal <code>'download'</code> is returned.</p>
+
+    <div class='pre p1 fill-light mt0'>sanitizeFilename(name: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>name</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    The input filename or URL segment to sanitize.
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>:
+        A sanitized filename (max length 255). Never returns an empty string.
+
+      
+    
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-title function_">sanitizeFilename</span>(<span class="hljs-string">&#x27;example.jpg&#x27;</span>) <span class="hljs-comment">// =&gt; &#x27;example.jpg&#x27;</span></pre>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-title function_">sanitizeFilename</span>(<span class="hljs-string">&#x27;a/b\c: d?e&#x27;</span>) <span class="hljs-comment">// =&gt; &#x27;a_b_c_ d_e&#x27;</span></pre>
+    
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='normalizetwitterurl'>
+      normalizeTwitterUrl
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Normalize Twitter <code>pbs.twimg.com</code> media URLs to request a higher-quality
+variant and derive a consistent filename.</p>
+<ul>
+<li>If the URL is not a Twitter media URL this function returns the inputs
+unchanged.</li>
+<li>Ensures query parameters include <code>name=large</code> and <code>format</code> when known.</li>
+<li>Infers a sensible file extension when possible and normalizes <code>jpg</code> -> <code>jpeg</code>.</li>
+</ul>
+
+    <div class='pre p1 fill-light mt0'>normalizeTwitterUrl(url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, filename: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): {url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, filename: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>}</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>url</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    Source URL possibly pointing at Twitter media CDN.
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>filename</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    Candidate filename to use as a fallback.
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code>{url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, filename: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>}</code>:
+        Normalized URL and filename.
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='normalizetwitterurl'>
+      normalizeTwitterUrl
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Normalize Twitter image URLs to request the <code>large</code> variant and derive a
+sensible filename.</p>
+<ul>
+<li>Only operates on <code>pbs.twimg.com</code> media endpoints whose path begins with
+<code>/media/</code>.</li>
+<li>Ensures the <code>name=large</code> query parameter is present and attempts to infer
+a file extension from the pathname or <code>format</code> query parameter.</li>
+<li>Returns the original inputs unchanged if parsing fails or the URL does not
+look like a Twitter media resource.</li>
+</ul>
+
+    <div class='pre p1 fill-light mt0'>normalizeTwitterUrl(url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, filename: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): {url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, filename: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>}</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>url</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    The original image URL.
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>filename</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    An optional candidate filename used as fallback.
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code>{url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, filename: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>}</code>:
+        Object with possibly-updated URL and filename.
+
+      
+    
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-title function_">normalizeTwitterUrl</span>(<span class="hljs-string">&#x27;https://pbs.twimg.com/media/ABC123.jpg&#x27;</span>, <span class="hljs-string">&#x27;x.jpg&#x27;</span>)
+<span class="hljs-comment">// =&gt; { url: &#x27;https://pbs.twimg.com/media/ABC123.jpg?format=jpg&amp;name=large&#x27;, filename: &#x27;ABC123.jpeg&#x27; }</span></pre>
+    
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='getbestcandidate'>
+      getBestCandidate
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>High-level selector for the best download candidate for a given image
+resource. This function orchestrates content-script probing, provider
+normalization (Twitter), HEAD probes to infer content-type or
+content-disposition filename hints, application of the filename template,
+and final sanitization.</p>
+<p>Contract:</p>
+<ul>
+<li>Accepts <code>info</code> with <code>{ srcUrl }</code> and a <code>tab</code> object used for content
+script messaging.</li>
+<li>Returns { ok: true, url, filename } on success or { ok: false, error }
+when unable to select a candidate.</li>
+</ul>
+<p>Error &#x26; edge handling:</p>
+<ul>
+<li>If the content script probe is unavailable or returns null, the function
+falls back to network probing.</li>
+<li>Network HEAD probes are performed with <code>fetchWithTimeout</code> (defaults used
+elsewhere) and will be skipped if no fetch implementation is provided.</li>
+</ul>
+
+    <div class='pre p1 fill-light mt0'>getBestCandidate(info: {srcUrl: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>}, tab: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>info</span> <code class='quiet'>({srcUrl: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>})</code>
+	    Object containing image 
+<code>srcUrl</code>
+.
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>tab</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
+	    Tab-like object (must expose 
+<code>id</code>
+) used to message content scripts.
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='module'>
+      module
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Exports for unit testing and runtime introspection.</p>
+<p>The exported values are intentionally the minimal surface needed by tests
+so the background service worker can remain side-effect free while under
+test control. Test suites may override <code>adapter</code> or call <code>getBestCandidate</code>
+and <code>performDownload</code> directly.</p>
+
+    <div class='pre p1 fill-light mt0'>module</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='defaults'>
+      DEFAULTS
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Content script to bypass common site protections.</p>
+<ul>
+<li>Reveals password inputs (converts type=password -> type=text) when enabled.</li>
+<li>Enables paste and context-menu actions by preventing page handlers from
+intercepting these events.</li>
+</ul>
+<p>The script reads preferences from <code>chrome.storage.sync</code> (with local fallback)
+and responds to runtime messages <code>{type: 'applyBypassNow', ...}</code> to apply
+settings immediately for the current page.</p>
+
+    <div class='pre p1 fill-light mt0'>DEFAULTS</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='defaults'>
+      DEFAULTS
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Options page logic for Lambda extension</p>
+<p>Exports (attached to window/global for tests):</p>
+<ul>
+<li>saveOptions(): saves UI values to chrome.storage (prefers storage.sync)</li>
+<li>loadOptions(): loads values and calls renderOptions</li>
+<li>renderOptions(cfg): applies a config object to the UI</li>
+</ul>
+<p>Storage integration uses <code>wrap</code> from <code>./lib/storageWrapper</code> with sync/local fallback.</p>
+<p>Inputs/Outputs:</p>
+<ul>
+<li>UI fields are gathered from DOM elements with ids prefixed <code>opt-</code> and persisted to storage.</li>
+<li><code>loadOptions</code> reads storage and calls <code>renderOptions(cfg)</code> where <code>cfg</code> is merged with DEFAULTS.</li>
+</ul>
+<p>Side-effects:</p>
+<ul>
+<li>Persists preferences to <code>chrome.storage.sync</code> (falls back to <code>chrome.storage.local</code>).</li>
+<li>Sends a runtime message <code>{ type: 'applyDisableShelf', value }</code> to request immediate application of the download-shelf preference.</li>
+<li>Updates the <code>#status</code> element text to indicate save completion.</li>
+</ul>
+<p>Error modes:</p>
+<ul>
+<li>Storage operations are best-effort; failures are silently ignored to avoid breaking the UI. <code>loadOptions</code> falls back to callback-style APIs when promise-based wrapper fails.</li>
+</ul>
+
+    <div class='pre p1 fill-light mt0'>DEFAULTS</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='revealpasswords'>
+      revealPasswords
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Convert existing password inputs to plain text for visibility.</p>
+
+    <div class='pre p1 fill-light mt0'>revealPasswords()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='observeforpasswords'>
+      observeForPasswords
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Observe DOM mutations to convert newly-added password inputs to text.</p>
+
+    <div class='pre p1 fill-light mt0'>observeForPasswords()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='enablepasteandrightclick'>
+      enablePasteAndRightClick
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Ensure paste and context-menu actions are allowed by clearing inline
+handlers and adding capture-phase listeners that prevent page handlers
+from blocking default behavior.</p>
+
+    <div class='pre p1 fill-light mt0'>enablePasteAndRightClick()</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='basenamefromurl'>
+      basenameFromUrl
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Content script: image probe helper</p>
+<p>Listens for messages from the background script to probe an image URL and
+return richer metadata (content-type, better candidate URL from the DOM,
+inferred filename). This script runs in the page context and performs
+lightweight network probes (HEAD/GET) when possible.</p>
+<p>Message API:</p>
+<ul>
+<li>{type: 'probeImage', src: string} -> responds with { ok:true, url, filename, contentType }</li>
+<li>{type: 'probeAndDownloadVisible'} -> finds a visible image and asks background to download it</li>
+</ul>
+
+    <div class='pre p1 fill-light mt0'>basenameFromUrl</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='basenamefromurl'>
+      basenameFromUrl
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Extract a decoded basename from a URL path. Falls back to 'image'.</p>
+
+    <div class='pre p1 fill-light mt0'>basenameFromUrl(url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>url</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>:
+        
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='basenamefromurl'>
+      basenameFromUrl
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Extract a decoded basename from a URL's path component.</p>
+<p>If the URL is invalid or the path does not contain a basename, returns
+the fallback string <code>'image'</code>.</p>
+
+    <div class='pre p1 fill-light mt0'>basenameFromUrl(url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>url</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    The URL to extract the basename from.
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>:
+        Decoded basename or 
+<code>'image'</code>
+ on error.
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='probeurl'>
+      probeUrl
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Probe a URL using HEAD (and optionally a ranged GET) to extract
+content-type and content-disposition filename hints.</p>
+
+    <div class='pre p1 fill-light mt0'>probeUrl(url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;{ok: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>, url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, filename: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, contentType: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>}></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>url</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;{ok: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>, url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, filename: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, contentType: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>}></code>:
+        
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='parsesrcset'>
+      parseSrcset
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Parse an img[srcset] attribute into candidate entries.</p>
+
+    <div class='pre p1 fill-light mt0'>parseSrcset(srcset: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;{url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, w: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, x: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>}></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>srcset</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;{url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, w: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, x: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>}></code>:
+        
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='parsesrcset'>
+      parseSrcset
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Parse an HTML <code>srcset</code> attribute value into structured candidate entries.</p>
+<p>Each returned entry has the shape { url: string, w: number, x: number } where
+<code>w</code> denotes the width descriptor (in pixels) if present, and <code>x</code> denotes the
+pixel density descriptor (e.g. 1, 2). If descriptors are absent they default
+to <code>{w:0, x:1}</code>.</p>
+
+    <div class='pre p1 fill-light mt0'>parseSrcset(srcset: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;{url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, w: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, x: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>}></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>srcset</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    The raw contents of an 
+<code>srcset</code>
+ attribute.
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;{url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, w: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, x: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>}></code>:
+        Array of parsed entries. Returns an empty array for invalid input.
+
+      
+    
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-title function_">parseSrcset</span>(<span class="hljs-string">&#x27;a.jpg 1x, b.jpg 2x&#x27;</span>)
+<span class="hljs-comment">// =&gt; [{url:&#x27;a.jpg&#x27;,w:0,x:1},{url:&#x27;b.jpg&#x27;,w:0,x:2}]</span></pre>
+    
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='choosebestsrcsetentry'>
+      chooseBestSrcsetEntry
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Choose the best URL from parsed srcset entries (prefer width then density).</p>
+
+    <div class='pre p1 fill-light mt0'>chooseBestSrcsetEntry(entries: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;{url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, w: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, x: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>}>): (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>entries</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;{url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, w: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, x: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>}>)</code>
+	    
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)</code>:
+        
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='choosebestsrcsetentry'>
+      chooseBestSrcsetEntry
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Select the best candidate from parsed srcset entries.</p>
+<p>Selection strategy:</p>
+<ul>
+<li>Prefer the entry with the largest <code>w</code> (width) value.</li>
+<li>If widths are equal, prefer the larger <code>x</code> (density).</li>
+</ul>
+
+    <div class='pre p1 fill-light mt0'>chooseBestSrcsetEntry(entries: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;{url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, w: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, x: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>}>): (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>entries</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;{url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, w: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>, x: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a>}>)</code>
+	    Parsed srcset entries.
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)</code>:
+        The selected URL, or null when no entries are available.
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='urlfrombackgroundimage'>
+      urlFromBackgroundImage
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Extract a URL from a CSS background-image value like <code>url("...")</code>.</p>
+
+    <div class='pre p1 fill-light mt0'>urlFromBackgroundImage(str: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>str</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)</code>:
+        
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='urlfrombackgroundimage'>
+      urlFromBackgroundImage
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Extract the URL contained inside a CSS <code>background-image: url(...)</code> value.</p>
+
+    <div class='pre p1 fill-light mt0'>urlFromBackgroundImage(str: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>str</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    CSS 
+<code>background-image</code>
+ value (e.g. 
+<code>url("/a.png")</code>
+).
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)</code>:
+        The extracted URL string or null when not present.
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='findbestcandidateindom'>
+      findBestCandidateInDom
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Search the DOM for elements that reference <code>src</code> and try to return a
+higher-quality candidate (from srcset, data attributes, or background images).</p>
+
+    <div class='pre p1 fill-light mt0'>findBestCandidateInDom(src: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>src</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)</code>:
+        
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='applytemplatestring'>
+      applyTemplateString
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Apply a simple filename template to an URL and base filename.</p>
+<p>Supported placeholders:</p>
+<ul>
+<li>{domain}    -> the request hostname with leading <code>www.</code> removed</li>
+<li>{basename}  -> the provided filename</li>
+<li>{timestamp} -> current epoch ms</li>
+</ul>
+<p>This is intentionally lightweight and returns the original <code>filename</code>
+on any error during parsing or templating.</p>
+
+    <div class='pre p1 fill-light mt0'>applyTemplateString(tpl: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, filename: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>tpl</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>
+            = <code>&#39;{domain}/{basename}&#39;</code>)</code>
+	    Template string.
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>url</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    Resource URL used to extract the domain.
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>filename</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    Base filename to insert into the template.
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></code>:
+        Templated filename (not sanitized). On error returns 
+<code>filename</code>
+.
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='parsecontentdisposition'>
+      parseContentDisposition
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Parse a <code>Content-Disposition</code> header value and extract a filename when
+present. Handles both <code>filename</code> and the RFC 5987 <code>filename*</code> (UTF-8
+percent-encoded) forms.</p>
+
+    <div class='pre p1 fill-light mt0'>parseContentDisposition(header: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>): (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>header</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    The value of the 
+<code>Content-Disposition</code>
+ header.
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a> | null)</code>:
+        The decoded filename when found, otherwise null.
+
+      
+    
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-title function_">parseContentDisposition</span>(<span class="hljs-string">&#x27;attachment; filename=&quot;a.jpg&quot;&#x27;</span>) <span class="hljs-comment">// =&gt; &#x27;a.jpg&#x27;</span>
+<span class="hljs-title function_">parseContentDisposition</span>(<span class="hljs-string">&quot;attachment; filename*=UTF-8&#x27;&#x27;a%20b.jpg&quot;</span>) <span class="hljs-comment">// =&gt; &#x27;a b.jpg&#x27;</span></pre>
+    
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='fetchwithtimeout'>
+      fetchWithTimeout
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Perform a fetch with a timeout and optional retry behavior.</p>
+<ul>
+<li>Uses an injected <code>fetchFn</code> when provided (useful for testing).</li>
+<li>Prefers <code>ky</code> when available and no <code>fetchFn</code> is supplied. Falls back to
+the global <code>fetch</code> if present. Throws if no fetch implementation can be
+found.</li>
+<li>Implements a simple retry/backoff loop for transient failures.</li>
+</ul>
+
+    <div class='pre p1 fill-light mt0'>fetchWithTimeout(url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, init: RequestInit?, opts: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>?): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/Guide/HTML/HTML5">Response</a>></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>url</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+	    Resource URL to fetch.
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>init</span> <code class='quiet'>(RequestInit?
+            = <code>{}</code>)</code>
+	    Standard fetch init options (method, headers, body, etc.).
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>opts</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>?
+            = <code>{}</code>)</code>
+	    Additional options.
+
+          </div>
+          
+          <table class='mt1 mb2 fixed-table h5 col-12'>
+            <colgroup>
+              <col width='30%' />
+              <col width='70%' />
+            </colgroup>
+            <thead>
+              <tr class='bold fill-light'>
+                <th>Name</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody class='mt1'>
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>opts.timeout</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code>
+  
+    (default <code>5000</code>)
+  </td>
+  <td class='break-word'><span>Timeout in milliseconds before aborting the request.
+</span></td>
+</tr>
+
+
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>opts.retries</span> <code class='quiet'><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></code>
+  
+    (default <code>1</code>)
+  </td>
+  <td class='break-word'><span>Number of retry attempts on failure (0 = no retries).
+</span></td>
+</tr>
+
+
+              
+                <tr>
+  <td class='break-word'><span class='code bold'>opts.fetchFn</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function">Function</a> | null)?</code>
+  
+    (default <code>typeof fetch!==&#39;undefined&#39;?fetch:null</code>)
+  </td>
+  <td class='break-word'><span>Optional fetch implementation to use instead of global fetch/ky.
+</span></td>
+</tr>
+
+
+              
+            </tbody>
+          </table>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/docs/Web/Guide/HTML/HTML5">Response</a>></code>:
+        Resolves with the fetch Response when successful.
+
+      
+    
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Throws</div>
+    <ul>
+      
+        <li><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>: If no fetch implementation is available or all retries fail.
+</li>
+      
+    </ul>
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-comment">// use global fetch with 3s timeout and 2 retries</span>
+<span class="hljs-keyword">await</span> <span class="hljs-title function_">fetchWithTimeout</span>(<span class="hljs-string">&#x27;https://example.com/image.jpg&#x27;</span>, {}, { <span class="hljs-attr">timeout</span>: <span class="hljs-number">3000</span>, <span class="hljs-attr">retries</span>: <span class="hljs-number">2</span> })</pre>
+    
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='performdownload'>
+      performDownload
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Initiate a download using the provided adapter (typically the <code>chrome</code>
+namespace or a test adapter). Returns a promise that resolves when the
+downloads API callback is invoked.</p>
+<p>Note: This function uses the adapter pattern to remain testable outside of
+the real Chrome runtime. It performs guarded checks for the required
+<code>downloads.download</code> function and returns structured errors instead of
+throwing.</p>
+
+    <div class='pre p1 fill-light mt0'>performDownload(adapter: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>, candidate: {url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, filename: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>}): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;({ok: <code>true</code>, id: any} | {ok: <code>false</code>, error: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>})></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>adapter</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
+	    Object exposing 
+<code>downloads.download</code>
+ (e.g. chrome).
+
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>candidate</span> <code class='quiet'>({url: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>, filename: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>})</code>
+	    Download candidate with a URL and sanitized filename.
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;({ok: <code>true</code>, id: any} | {ok: <code>false</code>, error: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>})></code>:
+        Resolves with download id on success, or an error object.
+
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='wrap'>
+      wrap
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>storageWrapper.js
+Promise-based wrapper around chrome.storage that prefers sync and falls back to local.
+Exports: wrap(storage, runtime) -> { get(keys): Promise, set(obj): Promise }</p>
+<p>Inputs:</p>
+<ul>
+<li>storage: chrome.storage or an object with sync/local get/set methods</li>
+<li>runtime: chrome.runtime (optional) used to inspect runtime.lastError</li>
+</ul>
+<p>Behavior:</p>
+<ul>
+<li>Attempts sync.get/set first; on runtime.lastError or thrown errors falls back to local</li>
+<li>Always resolves (never rejects) with a best-effort result</li>
+</ul>
+
+    <div class='pre p1 fill-light mt0'>wrap(storage: any, runtime: any)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>storage</span> <code class='quiet'>(any)</code>
+	    
+          </div>
+          
+        </div>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>runtime</span> <code class='quiet'>(any)</code>
+	    
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='get'>
+      get
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Wrap the provided storage object (chrome.storage) into a promise-based
+API that prefers <code>sync</code> and falls back to <code>local</code> when errors occur.</p>
+<p>The returned object exposes <code>get(keys)</code> and <code>set(obj)</code> which both resolve
+successfully even on underlying errors (best-effort semantics).</p>
+
+    <div class='pre p1 fill-light mt0'>get</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='set'>
+      set
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Persist an object to storage. Attempts <code>sync.set</code> first, falling back to
+<code>local.set</code> on failure. Always resolves (never rejects).</p>
+
+    <div class='pre p1 fill-light mt0'>set(obj: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>obj</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
+	    Key/value map to persist.
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>:
+        
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='saveoptions'>
+      saveOptions
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Save current options from the UI into chrome.storage (prefers sync).
+Emits a runtime message to apply the <code>disableShelf</code> preference immediately.
+This function is resilient to storage errors and performs best-effort writes.</p>
+
+    <div class='pre p1 fill-light mt0'>saveOptions(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>:
+        
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='renderoptions'>
+      renderOptions
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Render a configuration object into the options UI fields.</p>
+
+    <div class='pre p1 fill-light mt0'>renderOptions(cfg: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Parameters</div>
+    <div class='prose'>
+      
+        <div class='space-bottom0'>
+          <div>
+            <span class='code bold'>cfg</span> <code class='quiet'>(<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>
+            = <code>{}</code>)</code>
+	    Configuration object containing option values.
+
+          </div>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+          
+          <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+    <h3 class='fl m0' id='loadoptions'>
+      loadOptions
+    </h3>
+    
+    
+  </div>
+  
+
+  <p>Load options from storage and render them into the UI. Prefers the
+promise-based <code>storageClient</code> when available, with a callback-style
+fallback to <code>chrome.storage</code>.</p>
+
+    <div class='pre p1 fill-light mt0'>loadOptions(): <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;void></code>:
+        
+      
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+          
+        
+      </div>
+    </div>
+  <script src='assets/anchor.js'></script>
+  <script src='assets/split.js'></script>
+  <script src='assets/site.js'></script>
+</body>
+</html>

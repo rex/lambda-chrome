@@ -1,21 +1,52 @@
 /**
  * background.js — Lambda MV3 service worker
  *
- * Purpose:
- *  - Central background/service-worker logic for the extension: install/startup hooks,
- *    context menu creation, download orchestration, tab behavior, and option propagation.
+ * Module summary
+ * This module contains the top-level background/service-worker logic for the
+ * extension. It wires Chrome runtime events, provides the context menu and
+ * commands for user-initiated downloads, coordinates probing & filename
+ * selection, and delegates the final download to the downloads API. The file
+ * is written defensively so it can be executed in unit tests (via the
+ * `chromeAdapter` test shim) or in a real Chrome MV3 environment.
  *
- * Public behaviors/side-effects:
- *  - Registers `chrome.runtime.onInstalled` and `onStartup` handlers to apply stored preferences.
- *  - Creates context menu entries for image download and bypass actions.
- *  - Wakes on command/menus to probe and download images via `getBestCandidate` and `performDownload`.
- *  - Listens for storage-driven messages (applyDisableShelf) to persist and apply the download-shelf preference.
- *  - Moves newly created tabs to open next to the active tab (no-op in test adapters).
+ * Exported surface (for tests)
+ * - IMG_DOWNLOAD_MENU_ID (string): id used for the context menu item
+ * - adapter (object): runtime adapter used (real `chrome` or test shim)
+ * - setShelfEnabled(enabled): Promise<void> — enable/disable the download shelf
+ * - createContextMenu(): void — create extension context menu entries
+ * - postInstall(details): Promise<void> — install-time initialization
+ * - postStartup(): Promise<void> — startup-time initialization
+ * - sanitizeFilename(name): string — conservative filename sanitizer (SW fallback)
+ * - normalizeTwitterUrl(url, filename): {url,filename} — normalize pbs.twimg.com image URLs
+ * - getBestCandidate(info, tab): Promise<{ok:boolean,url?:string,filename?:string,error?:string}> — select a download candidate
+ * - performDownload(candidate, callback?): Promise<{ok:boolean,id?:any,error?:string}> — trigger the download
+ * - applyTemplate(url, filename): Promise<string> — apply filename template from storage
  *
- * Error modes & testing:
- *  - Uses an injected `chromeAdapter` when available for testability; otherwise falls back to the real `chrome` APIs.
- *  - Where APIs may throw (missing `chrome` in tests), the adapter provides minimal stubs and functions become no-ops.
- *  - All interactions with chrome.* are best-effort and avoid throwing; errors are logged via `console.warn`.
+ * Contracts & data shapes
+ * - Candidate: { url: string, filename: string }
+ * - Probe result: { ok: true, url: string, filename: string } or { ok: false, error: string }
+ *
+ * Design notes
+ * - Defensive adapters: the `adapter` object abstracts chrome.* APIs so tests
+ *   can inject a lightweight shim. The code always checks that nested
+ *   functions (e.g. adapter.downloads.download) exist before calling them.
+ * - Guarded optional deps: where useful the module prefers small helper
+ *   libs (e.g. lodash helpers) when available at runtime, but defines
+ *   in-file fallbacks so the unbundled MV3 service worker can load.
+ * - Error handling: methods attempt to return structured error objects rather
+ *   than throwing to make background logic easier to test and resilient at
+ *   runtime.
+ *
+ * Edge cases considered
+ * - Missing or malformed URLs, blob/data: URLs, redirected responses, missing
+ *   headers (Content-Type / Content-Disposition), CDN-hosted images (Twitter),
+ *   and content scripts that may provide improved candidates.
+ *
+ * Testing helpers
+ * - The module exports internal helpers (getBestCandidate, performDownload,
+ *   etc.) so unit tests can call and assert behavior without side effects.
+ *
+ * @module extension/background
  */
 
 const IMG_DOWNLOAD_MENU_ID = 'lambda-cm-dl-img'
@@ -94,6 +125,18 @@ const logLastError = (ctx = '') => {
   } catch (e) {}
 }
 
+/**
+ * Set the download shelf visibility via the downloads API.
+ *
+ * This function attempts to call the platform API exposed at
+ * `adapter.downloads.setShelfEnabled(enabled, cb)` and resolves after the
+ * callback runs. When the API is not available the function resolves
+ * immediately (no-op). Errors are caught and logged; the returned promise
+ * always resolves to allow best-effort application at install/startup.
+ *
+ * @param {boolean} enabled - true to show the download shelf, false to hide it.
+ * @returns {Promise<void>} Resolves after the API invocation or immediately when not available.
+ */
 function setShelfEnabled(enabled) {
   return new Promise((resolve) => {
     try {
@@ -116,6 +159,15 @@ function setShelfEnabled(enabled) {
   })
 }
 
+/**
+ * Create the extension context menu entries used for image download and
+ * bypass actions.
+ *
+ * This function prefers `adapter.contextMenus.create` when provided; it
+ * performs defensive checks so it is safe to call in headless tests.
+ *
+ * @returns {void}
+ */
 function createContextMenu() {
   try {
     const _create = _isFunction(_get(adapter, 'contextMenus.create'))
@@ -133,6 +185,20 @@ function createContextMenu() {
   }
 }
 
+/**
+ * Handle runtime.onInstalled event.
+ *
+ * Responsibilities:
+ * - Read persisted preference for the download-shelf (`disableShelf`) and
+ *   apply it via `setShelfEnabled`.
+ * - Ensure the extension context menu entries are created.
+ *
+ * The function uses `adapter.storage.sync.get` when available and falls back
+ * to safe defaults. It never throws; errors are logged and handled.
+ *
+ * @param {Object} details - onInstalled details object provided by Chrome.
+ * @returns {Promise<void>}
+ */
 async function postInstall(details) {
   // read stored preference for disableShelf (sync preferred)
   try {
@@ -157,6 +223,15 @@ async function postInstall(details) {
   }
 }
 
+/**
+ * Handle runtime.onStartup event.
+ *
+ * Reads the `disableShelf` preference and applies the shelf setting. This is
+ * invoked when the service worker starts and is resilient to missing storage
+ * APIs.
+ *
+ * @returns {Promise<void>}
+ */
 async function postStartup() {
   try {
     adapter.storage.sync.get(['disableShelf'], async (items) => {
@@ -168,6 +243,20 @@ async function postStartup() {
   }
 }
 
+/**
+ * Conservative filename sanitizer used by the service worker.
+ *
+ * Behavior:
+ * - Prefers the shared `./lib/sanitizeFilename` implementation when available
+ *   (keeps a single canonical sanitizer in the lib). If the lib is not
+ *   available, this function performs a conservative fallback sanitization.
+ * - Attempts to decode URI components, strips query and fragment-like
+ *   fragments, replaces filesystem-problematic characters with underscores,
+ *   and truncates to a safe maximum (255 bytes/characters).
+ *
+ * @param {string} name - Input filename or URL segment to sanitize.
+ * @returns {string} A sanitized filename suitable for saving; never an empty string.
+ */
 function sanitizeFilename(name) {
   if (!name) return 'download'
   // prefer shared lib implementation when available
@@ -181,11 +270,26 @@ function sanitizeFilename(name) {
   // remove trailing modifiers and query-like segments
   name = String(name).replace(/[:?#].*$/g, '')
   // Replace characters that are invalid on most file systems
-  name = name.replace(/[\\/:"<>|?*\x00-\x1F]/g, '_')
+  name = name.replace(/[\/:"<>|?*\x00-\x1F]/g, '_')
   // Limit length using truncate helper
   return _truncate(name, { length: 255, omission: '' }) || 'download'
 }
 
+// ...existing code...
+
+/**
+ * Normalize Twitter `pbs.twimg.com` media URLs to request a higher-quality
+ * variant and derive a consistent filename.
+ *
+ * - If the URL is not a Twitter media URL this function returns the inputs
+ *   unchanged.
+ * - Ensures query parameters include `name=large` and `format` when known.
+ * - Infers a sensible file extension when possible and normalizes `jpg` -> `jpeg`.
+ *
+ * @param {string} url - Source URL possibly pointing at Twitter media CDN.
+ * @param {string} filename - Candidate filename to use as a fallback.
+ * @returns {{url:string,filename:string}} Normalized URL and filename.
+ */
 function normalizeTwitterUrl(url, filename) {
   try {
     if (!url) return { url, filename }
@@ -269,6 +373,29 @@ if (typeof require !== 'undefined') {
   }
 }
 
+/**
+ * High-level selector for the best download candidate for a given image
+ * resource. This function orchestrates content-script probing, provider
+ * normalization (Twitter), HEAD probes to infer content-type or
+ * content-disposition filename hints, application of the filename template,
+ * and final sanitization.
+ *
+ * Contract:
+ * - Accepts `info` with `{ srcUrl }` and a `tab` object used for content
+ *   script messaging.
+ * - Returns { ok: true, url, filename } on success or { ok: false, error }
+ *   when unable to select a candidate.
+ *
+ * Error & edge handling:
+ * - If the content script probe is unavailable or returns null, the function
+ *   falls back to network probing.
+ * - Network HEAD probes are performed with `fetchWithTimeout` (defaults used
+ *   elsewhere) and will be skipped if no fetch implementation is provided.
+ *
+ * @param {{srcUrl:string}} info - Object containing image `srcUrl`.
+ * @param {Object} tab - Tab-like object (must expose `id`) used to message content scripts.
+ * @returns {Promise<{ok:boolean,url?:string,filename?:string,error?:string}>}
+ */
 async function getBestCandidate(info, tab) {
   const fetchFn = (u, opts) => fetch(u, opts)
   const applyTemplateFn = (url, filename) => new Promise((resolve) => {
@@ -426,6 +553,14 @@ if (_onContextMenuTarget && typeof _onContextMenuTarget.addListener === 'functio
 
 // Export internals for unit testing. These are non-functional exports used only by tests.
 // They do not change runtime behavior when the service worker is loaded by Chrome.
+/**
+ * Exports for unit testing and runtime introspection.
+ *
+ * The exported values are intentionally the minimal surface needed by tests
+ * so the background service worker can remain side-effect free while under
+ * test control. Test suites may override `adapter` or call `getBestCandidate`
+ * and `performDownload` directly.
+ */
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     IMG_DOWNLOAD_MENU_ID,

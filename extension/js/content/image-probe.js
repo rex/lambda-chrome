@@ -2,7 +2,24 @@
 // Listens for messages: {type: 'probeImage', src: <url>, elementSelector: <optional selector>}
 // Responds with {ok:true, url:, filename:, contentType:}
 
+/**
+ * Content script: image probe helper
+ *
+ * Listens for messages from the background script to probe an image URL and
+ * return richer metadata (content-type, better candidate URL from the DOM,
+ * inferred filename). This script runs in the page context and performs
+ * lightweight network probes (HEAD/GET) when possible.
+ *
+ * Message API:
+ * - {type: 'probeImage', src: string} -> responds with { ok:true, url, filename, contentType }
+ * - {type: 'probeAndDownloadVisible'} -> finds a visible image and asks background to download it
+ */
 (function(){
+  /**
+   * Extract a decoded basename from a URL path. Falls back to 'image'.
+   * @param {string} url
+   * @returns {string}
+   */
   function basenameFromUrl(url) {
     try {
       const u = new URL(url)
@@ -13,6 +30,12 @@
     } catch(e) { return 'image' }
   }
 
+  /**
+   * Probe a URL using HEAD (and optionally a ranged GET) to extract
+   * content-type and content-disposition filename hints.
+   * @param {string} url
+   * @returns {Promise<{ok:boolean,url:string,filename:string,contentType:string}>}
+   */
   async function probeUrl(url) {
     // Try to fetch headers (HEAD) to get content-type and content-disposition
     try {
@@ -62,6 +85,11 @@
     }
   }
 
+  /**
+   * Parse an img[srcset] attribute into candidate entries.
+   * @param {string} srcset
+   * @returns {Array<{url:string,w:number,x:number}>}
+   */
   function parseSrcset(srcset) {
     // returns array of {url, w, x}
     try {
@@ -75,6 +103,11 @@
     } catch(e) { return [] }
   }
 
+  /**
+   * Choose the best URL from parsed srcset entries (prefer width then density).
+   * @param {Array<{url:string,w:number,x:number}>} entries
+   * @returns {string|null}
+   */
   function chooseBestSrcsetEntry(entries) {
     if (!entries || !entries.length) return null
     // prefer highest width, then highest x
@@ -82,6 +115,11 @@
     return entries[0].url
   }
 
+  /**
+   * Extract a URL from a CSS background-image value like `url("...")`.
+   * @param {string} str
+   * @returns {string|null}
+   */
   function urlFromBackgroundImage(str) {
     if (!str) return null
     const m = /url\((?:\"|\')?(.*?)(?:\"|\')?\)/.exec(str)
@@ -89,6 +127,12 @@
     return null
   }
 
+  /**
+   * Search the DOM for elements that reference `src` and try to return a
+   * higher-quality candidate (from srcset, data attributes, or background images).
+   * @param {string} src
+   * @returns {string|null}
+   */
   function findBestCandidateInDom(src) {
     try {
       // direct matches

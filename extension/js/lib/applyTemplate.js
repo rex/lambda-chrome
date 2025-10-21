@@ -1,17 +1,18 @@
 /**
- * applyTemplateString
- * Applies a filename template to a URL and base filename.
+ * Apply a simple filename template to an URL and base filename.
  *
- * Inputs:
- *  - tpl: template string, e.g. '{domain}/{basename}'
- *  - url: resource URL used to extract the domain
- *  - filename: base filename (basename)
+ * Supported placeholders:
+ * - {domain}    -> the request hostname with leading `www.` removed
+ * - {basename}  -> the provided filename
+ * - {timestamp} -> current epoch ms
  *
- * Outputs:
- *  - string: templated filename path (not sanitized)
+ * This is intentionally lightweight and returns the original `filename`
+ * on any error during parsing or templating.
  *
- * Side-effects: none.
- * Error modes: returns the original `filename` if URL parsing or template application fails.
+ * @param {string} [tpl='{domain}/{basename}'] - Template string.
+ * @param {string} url - Resource URL used to extract the domain.
+ * @param {string} filename - Base filename to insert into the template.
+ * @returns {string} Templated filename (not sanitized). On error returns `filename`.
  */
 function applyTemplateString(tpl, url, filename) {
   try {

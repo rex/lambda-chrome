@@ -1,6 +1,17 @@
 // Content script (isolated world) for Lambda: bypass site protections
 // Runs at document_start in all frames
 
+/**
+ * Content script to bypass common site protections.
+ *
+ * - Reveals password inputs (converts type=password -> type=text) when enabled.
+ * - Enables paste and context-menu actions by preventing page handlers from
+ *   intercepting these events.
+ *
+ * The script reads preferences from `chrome.storage.sync` (with local fallback)
+ * and responds to runtime messages `{type: 'applyBypassNow', ...}` to apply
+ * settings immediately for the current page.
+ */
 (function () {
   const DEFAULTS = {
     revealPasswords: false,
@@ -21,7 +32,9 @@
     }
   }
 
-  // Apply password reveal to existing inputs
+  /**
+   * Convert existing password inputs to plain text for visibility.
+   */
   function revealPasswords() {
     try {
       const inputs = document.querySelectorAll('input[type=password]')
@@ -31,7 +44,9 @@
     } catch (e) {}
   }
 
-  // Observe additions and attribute changes
+  /**
+   * Observe DOM mutations to convert newly-added password inputs to text.
+   */
   function observeForPasswords() {
     const mo = new MutationObserver((mutations) => {
       for (const m of mutations) {
@@ -53,7 +68,11 @@
     mo.observe(document.documentElement || document, { childList: true, subtree: true, attributes: true, attributeFilter: ['type'] })
   }
 
-  // Prevent sites from blocking paste and right-click by intercepting capture phase and stopping propagation
+  /**
+   * Ensure paste and context-menu actions are allowed by clearing inline
+   * handlers and adding capture-phase listeners that prevent page handlers
+   * from blocking default behavior.
+   */
   function enablePasteAndRightClick() {
     // remove inline handlers
     try { document.onpaste = null } catch (e) {}

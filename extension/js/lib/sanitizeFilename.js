@@ -1,15 +1,19 @@
 /**
- * sanitizeFilename
  * Normalize and sanitize a filename string for cross-platform filesystem use.
  *
- * Inputs:
- *  - name: string
+ * This function prefers to use the `sanitize-filename` package when available.
+ * It falls back to a conservative regex-based sanitizer when the package is
+ * not present or decoding fails. The returned value is always a non-empty
+ * string suitable for use as a filesystem filename; when input is empty or
+ * cannot be normalized, the literal `'download'` is returned.
  *
- * Outputs:
- *  - string: sanitized filename (safe characters, length-limited)
+ * @param {string} name - The input filename or URL segment to sanitize.
+ * @returns {string} A sanitized filename (max length 255). Never returns an empty string.
  *
- * Side-effects: none.
- * Error modes: returns 'download' for empty or irreparably invalid input.
+ * @example
+ * sanitizeFilename('example.jpg') // => 'example.jpg'
+ * @example
+ * sanitizeFilename('a/b\c: d?e') // => 'a_b_c_ d_e'
  */
 function sanitizeFilename(name) {
   if (!name) return 'download'

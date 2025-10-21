@@ -1,13 +1,24 @@
 /**
- * fetchWithTimeout
- * A thin wrapper around fetch supporting timeout (via AbortController) and retries.
+ * Perform a fetch with a timeout and optional retry behavior.
  *
- * Params:
- *  - url: string
- *  - init: fetch init object
- *  - opts: { timeout(ms)=5000, retries=1, fetchFn=optional fetch implementation }
+ * - Uses an injected `fetchFn` when provided (useful for testing).
+ * - Prefers `ky` when available and no `fetchFn` is supplied. Falls back to
+ *   the global `fetch` if present. Throws if no fetch implementation can be
+ *   found.
+ * - Implements a simple retry/backoff loop for transient failures.
  *
- * Throws if no fetch implementation is available or all retries fail.
+ * @param {string} url - Resource URL to fetch.
+ * @param {RequestInit} [init] - Standard fetch init options (method, headers, body, etc.).
+ * @param {Object} [opts] - Additional options.
+ * @param {number} [opts.timeout=5000] - Timeout in milliseconds before aborting the request.
+ * @param {number} [opts.retries=1] - Number of retry attempts on failure (0 = no retries).
+ * @param {Function|null} [opts.fetchFn] - Optional fetch implementation to use instead of global fetch/ky.
+ * @returns {Promise<Response>} Resolves with the fetch Response when successful.
+ * @throws {Error} If no fetch implementation is available or all retries fail.
+ *
+ * @example
+ * // use global fetch with 3s timeout and 2 retries
+ * await fetchWithTimeout('https://example.com/image.jpg', {}, { timeout: 3000, retries: 2 })
  */
 async function fetchWithTimeout(url, init = {}, { timeout = 5000, retries = 1, fetchFn = (typeof fetch !== 'undefined' ? fetch : null) } = {}) {
   // Prefer ky when available (ky wraps fetch and provides timeout/retry helpers)

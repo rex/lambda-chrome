@@ -1,19 +1,26 @@
 /**
- * getBestCandidate
- * Probe and determine the best download candidate for an image src.
+ * Determine the best download candidate for an image source URL.
  *
- * Inputs:
- *  - { srcUrl }: object with srcUrl string
- *  - tab: chrome.tabs.Tab-like object (used for sendMessage probe)
- *  - options: { adapter, fetchFn, applyTemplateFn, fetchOptions }
+ * Process overview:
+ * 1. Validate input and optionally ask a content-script probe for a better URL
+ *    and filename (via adapter.tabs.sendMessage).
+ * 2. Normalize known provider URLs (e.g. Twitter) to request high-quality
+ *    variants.
+ * 3. If the filename lacks an extension, attempt a HEAD request to infer the
+ *    content-type or parse `Content-Disposition` for a suggested filename.
+ * 4. Apply a filename template (via applyTemplateFn) and sanitize the result.
  *
- * Behavior:
- *  - Optionally asks a content script probe for a better url/filename
- *  - Normalizes twitter image URLs
- *  - HEAD-probes the resource to infer content-type or content-disposition
- *  - Applies filename template via applyTemplateFn and sanitizes the result
- *
- * Returns: Promise resolving to { ok: true, url, filename } or { ok: false, error }
+ * @param {{srcUrl: string}} args - Object containing the image source URL.
+ * @param {Object} tab - Tab-like object (should expose an `id` property) used
+ *   when sending a probe message to the content script.
+ * @param {Object} [options] - Optional helpers and overrides.
+ * @param {Object} [options.adapter] - Adapter that exposes `tabs.sendMessage`.
+ * @param {Function} [options.fetchFn] - Optional fetch implementation to use for HEAD probes.
+ * @param {Function} [options.applyTemplateFn] - Async function (url, filename) => templatedFilename.
+ * @param {Object} [options.fetchOptions] - Extra options passed to fetchWithTimeout when used.
+ * @returns {Promise<{ok: true, url: string, filename: string} | {ok: false, error: string}>}
+ *   Resolves with the chosen URL and sanitized filename on success, or an
+ *   error object when selection fails.
  */
 const { sanitizeFilename } = require('./sanitizeFilename')
 const { normalizeTwitterUrl } = require('./normalizeTwitter')

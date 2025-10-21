@@ -14,6 +14,13 @@
 
 function wrap(storage, runtime) {
   // storage: { sync: { get, set }, local: { get, set } }
+  /**
+   * Wrap the provided storage object (chrome.storage) into a promise-based
+   * API that prefers `sync` and falls back to `local` when errors occur.
+   *
+   * The returned object exposes `get(keys)` and `set(obj)` which both resolve
+   * successfully even on underlying errors (best-effort semantics).
+   */
   return {
     async get(keys) {
       return new Promise((resolve) => {
@@ -44,7 +51,13 @@ function wrap(storage, runtime) {
         }
       })
     },
-    async set(obj) {
+  /**
+   * Persist an object to storage. Attempts `sync.set` first, falling back to
+   * `local.set` on failure. Always resolves (never rejects).
+   * @param {Object} obj - Key/value map to persist.
+   * @returns {Promise<void>}
+   */
+  async set(obj) {
       return new Promise((resolve) => {
         try {
           const st = _get(storage, 'sync') ? _get(storage, 'sync') : storage

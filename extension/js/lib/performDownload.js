@@ -1,12 +1,16 @@
 /**
- * performDownload
- * Wrapper that invokes chrome.downloads.download via an adapter and returns a Promise.
+ * Initiate a download using the provided adapter (typically the `chrome`
+ * namespace or a test adapter). Returns a promise that resolves when the
+ * downloads API callback is invoked.
  *
- * Inputs:
- *  - adapter: object exposing downloads.download (usually chromeAdapter or chrome)
- *  - candidate: { url: string, filename: string }
+ * Note: This function uses the adapter pattern to remain testable outside of
+ * the real Chrome runtime. It performs guarded checks for the required
+ * `downloads.download` function and returns structured errors instead of
+ * throwing.
  *
- * Returns: Promise<{ ok: true, id: downloadId } | { ok: false, error: string }>
+ * @param {Object} adapter - Object exposing `downloads.download` (e.g. chrome).
+ * @param {{url: string, filename: string}} candidate - Download candidate with a URL and sanitized filename.
+ * @returns {Promise<{ok: true, id: any} | {ok: false, error: string}>} Resolves with download id on success, or an error object.
  */
 function performDownload(adapter, candidate) {
   return new Promise((resolve) => {

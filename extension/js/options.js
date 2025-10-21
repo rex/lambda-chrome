@@ -37,6 +37,13 @@ const optsAdapter = (typeof chromeAdapter !== 'undefined' && chromeAdapter) ? ch
 const { wrap } = require('./lib/storageWrapper')
 const storageClient = optsAdapter && optsAdapter.storage ? wrap(optsAdapter.storage, optsAdapter.runtime) : (typeof chrome !== 'undefined' ? wrap(chrome.storage, chrome.runtime) : null)
 
+/**
+ * Save current options from the UI into chrome.storage (prefers sync).
+ * Emits a runtime message to apply the `disableShelf` preference immediately.
+ * This function is resilient to storage errors and performs best-effort writes.
+ *
+ * @returns {Promise<void>}
+ */
 async function saveOptions() {
   const disableShelf = qs('opt-disable-shelf').checked
   const filenameTemplate = qs('opt-filename-template').value || DEFAULTS.filenameTemplate
@@ -70,6 +77,10 @@ async function saveOptions() {
   setTimeout(() => { status.textContent = '' }, 1500)
 }
 
+/**
+ * Render a configuration object into the options UI fields.
+ * @param {Object} cfg - Configuration object containing option values.
+ */
 function renderOptions(cfg = {}) {
   qs('opt-disable-shelf').checked = cfg.disableShelf
   qs('opt-filename-template').value = cfg.filenameTemplate || DEFAULTS.filenameTemplate
@@ -80,6 +91,13 @@ function renderOptions(cfg = {}) {
   qs('opt-forced-extension').value = cfg.forcedExtension || ''
 }
 
+/**
+ * Load options from storage and render them into the UI. Prefers the
+ * promise-based `storageClient` when available, with a callback-style
+ * fallback to `chrome.storage`.
+ *
+ * @returns {Promise<void>}
+ */
 async function loadOptions() {
   if (storageClient) {
     try {

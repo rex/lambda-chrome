@@ -1,17 +1,21 @@
 /**
- * normalizeTwitterUrl
- * Normalize twitter image URLs (pbs.twimg.com) to request the 'large' variant and
- * produce a reasonable filename.
+ * Normalize Twitter image URLs to request the `large` variant and derive a
+ * sensible filename.
  *
- * Inputs:
- *  - url: string
- *  - filename: current filename candidate
+ * - Only operates on `pbs.twimg.com` media endpoints whose path begins with
+ *   `/media/`.
+ * - Ensures the `name=large` query parameter is present and attempts to infer
+ *   a file extension from the pathname or `format` query parameter.
+ * - Returns the original inputs unchanged if parsing fails or the URL does not
+ *   look like a Twitter media resource.
  *
- * Outputs:
- *  - { url, filename }
+ * @param {string} url - The original image URL.
+ * @param {string} filename - An optional candidate filename used as fallback.
+ * @returns {{url: string, filename: string}} Object with possibly-updated URL and filename.
  *
- * Side-effects: none.
- * Error modes: returns the original inputs if parsing fails.
+ * @example
+ * normalizeTwitterUrl('https://pbs.twimg.com/media/ABC123.jpg', 'x.jpg')
+ * // => { url: 'https://pbs.twimg.com/media/ABC123.jpg?format=jpg&name=large', filename: 'ABC123.jpeg' }
  */
 function normalizeTwitterUrl(url, filename) {
   try {

@@ -1,15 +1,17 @@
 /**
- * parseSrcset
- * Parse an <img srcset> attribute into an array of entries with width (w) and density (x) hints.
+ * Parse an HTML `srcset` attribute value into structured candidate entries.
  *
- * Inputs:
- *  - srcset: string (the contents of a srcset attribute)
+ * Each returned entry has the shape { url: string, w: number, x: number } where
+ * `w` denotes the width descriptor (in pixels) if present, and `x` denotes the
+ * pixel density descriptor (e.g. 1, 2). If descriptors are absent they default
+ * to `{w:0, x:1}`.
  *
- * Outputs:
- *  - Array<{ url: string, w: number, x: number }>
+ * @param {string} srcset - The raw contents of an `srcset` attribute.
+ * @returns {Array<{url:string, w:number, x:number}>} Array of parsed entries. Returns an empty array for invalid input.
  *
- * Side-effects: none.
- * Error modes: returns [] for invalid input.
+ * @example
+ * parseSrcset('a.jpg 1x, b.jpg 2x')
+ * // => [{url:'a.jpg',w:0,x:1},{url:'b.jpg',w:0,x:2}]
  */
 function parseSrcset(srcset) {
   if (!srcset || typeof srcset !== 'string') return []
@@ -23,14 +25,14 @@ function parseSrcset(srcset) {
 }
 
 /**
- * chooseBestSrcsetEntry
- * Choose the best candidate URL from parsed srcset entries. Prefers highest width, then highest density.
+ * Select the best candidate from parsed srcset entries.
  *
- * Inputs:
- *  - entries: Array as returned by `parseSrcset`
+ * Selection strategy:
+ * - Prefer the entry with the largest `w` (width) value.
+ * - If widths are equal, prefer the larger `x` (density).
  *
- * Outputs:
- *  - string|null: selected entry URL or null if none
+ * @param {Array<{url:string,w:number,x:number}>} entries - Parsed srcset entries.
+ * @returns {string|null} The selected URL, or null when no entries are available.
  */
 function chooseBestSrcsetEntry(entries) {
   if (!entries || !entries.length) return null
